@@ -1,5 +1,5 @@
 import React from 'react';
-import useAuth from './hooks/useAuth.tsx';
+import useAuth from './hooks/useAuth.ts';
 import Login from './components/auth/Login.tsx';
 import MainApp from './components/MainApp.tsx';
 import { LogIn, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
