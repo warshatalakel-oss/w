@@ -1,7 +1,7 @@
 import React from 'react';
-import type { SchoolSettings, Student, StudentResult, CalculatedGrade, SubjectGrade } from '../types';
-import { numberToArabicWords } from '../lib/numberToWords';
-import type { DetailedStats } from './TeacherLogExporter';
+import type { SchoolSettings, Student, StudentResult, CalculatedGrade, SubjectGrade } from '../types.ts';
+import { numberToArabicWords } from '../lib/numberToWords.ts';
+import type { DetailedStats } from './TeacherLogExporter.tsx';
 
 const DEFAULT_SUBJECT_GRADE: SubjectGrade = { firstTerm: null, midYear: null, secondTerm: null, finalExam1st: null, finalExam2nd: null };
 const DEFAULT_CALCULATED_GRADE: CalculatedGrade = { annualPursuit: null, finalGrade1st: null, finalGradeWithDecision: null, decisionApplied: 0, finalGrade2nd: null, isExempt: false };

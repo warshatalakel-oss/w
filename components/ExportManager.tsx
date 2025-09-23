@@ -1,10 +1,10 @@
 
 import React, { useState, useMemo, useRef } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import type { ClassData, SchoolSettings, Student, SubjectGrade, CalculatedGrade } from '../types';
-import { GRADE_LEVELS } from '../constants';
-import { calculateStudentResult } from '../lib/gradeCalculator';
-import StudentReportCard from './StudentReportCard';
+import type { ClassData, SchoolSettings, Student, SubjectGrade, CalculatedGrade } from '../types.ts';
+import { GRADE_LEVELS } from '../constants.ts';
+import { calculateStudentResult } from '../lib/gradeCalculator.ts';
+import StudentReportCard from './StudentReportCard.tsx';
 import { Download, FileText, Loader2 } from 'lucide-react';
 
 declare const XLSX: any;

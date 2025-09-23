@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade, SubjectGrade } from '../types';
+import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade, SubjectGrade } from '../types.ts';
 
 interface StudentReportCardProps {
     student: Student;

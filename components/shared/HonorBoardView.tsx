@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 // Fix: Added missing type imports
-import type { User, ClassData, BehavioralHonorBoard, HonoredStudent, BehavioralVote } from '../../types';
-import { db } from '../../lib/firebase';
+import type { User, ClassData, BehavioralHonorBoard, HonoredStudent, BehavioralVote } from '../../types.ts';
+import { db } from '../../lib/firebase.ts';
 import { Award, Crown, Loader2, Send, Star, UserCheck, X } from 'lucide-react';
 // Fix: Added missing constant import
-import { BEHAVIORAL_CRITERIA } from '../../constants';
+import { BEHAVIORAL_CRITERIA } from '../../constants.ts';
 
 interface HonorBoardViewProps {
     currentUser: User;

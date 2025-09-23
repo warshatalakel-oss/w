@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade, Subject } from '../../types';
-import { GRADE_LEVELS } from '../../constants';
-import { calculateStudentResult } from '../../lib/gradeCalculator';
+import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade, Subject } from '../../types.ts';
+import { GRADE_LEVELS } from '../../constants.ts';
+import { calculateStudentResult } from '../../lib/gradeCalculator.ts';
 import { Loader2, FileDown, BarChart2 } from 'lucide-react';
-import OverallPercentagesPDF from './OverallPercentagesPDF';
+import OverallPercentagesPDF from './OverallPercentagesPDF.tsx';
 
 
 declare const jspdf: any;
@@ -142,7 +142,7 @@ export default function OverallPercentagesManager({ classes, settings }: { class
                 } else if (res.result.status === 'راسب') {
                     failing_overall++;
                 } else if (res.result.status === 'مكمل') {
-                    const failingCount = Object.values(res.finalCalculatedGrades).filter(g => !g.isExempt && g.finalGradeWithDecision !== null && g.finalGradeWithDecision < 50).length;
+                    const failingCount = Object.values(res.finalCalculatedGrades).filter((g: CalculatedGrade) => !g.isExempt && g.finalGradeWithDecision !== null && g.finalGradeWithDecision < 50).length;
                     if (failingCount === 1) supp1++;
                     else if (failingCount === 2) supp2++;
                     else if (failingCount >= 3) supp3++;

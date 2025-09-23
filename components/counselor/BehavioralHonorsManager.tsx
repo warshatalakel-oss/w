@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import type { User, ClassData, Student, BehavioralHonorBoard, HonoredStudent, StudentSubmission } from '../../types';
-import { db } from '../../lib/firebase';
+import type { User, ClassData, Student, BehavioralHonorBoard, HonoredStudent, StudentSubmission } from '../../types.ts';
+import { db } from '../../lib/firebase.ts';
 import { Award, Loader2, UserPlus, CheckCircle, Trash2, X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 

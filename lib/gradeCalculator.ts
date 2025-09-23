@@ -1,374 +1,190 @@
 import type { Student, Subject, SubjectGrade, CalculatedGrade, StudentResult, SchoolSettings, ClassData } from '../types.ts';
 
-const PASSING_GRADE = 50;
+const MINISTERIAL_STAGES = ['الثالث متوسط', 'السادس العلمي', 'السادس الادبي', 'السادس ابتدائي'];
 
-// New constants for primary school stages
-const PRIMARY_1_4_STAGES = ['الاول ابتدائي', 'الثاني ابتدائي', 'الثالث ابتدائي', 'الرابع ابتدائي'];
-const PRIMARY_5_STAGE = 'الخامس ابتدائي';
-const PRIMARY_6_STAGE = 'السادس ابتدائي';
-
-const MINISTERIAL_STAGES = ['الثالث متوسط', 'السادس العلمي', 'السادس الادبي', PRIMARY_6_STAGE];
-const NON_EXEMPT_STAGES = ['الثالث متوسط', 'السادس العلمي', 'السادس الادبي', PRIMARY_5_STAGE, PRIMARY_6_STAGE, ...PRIMARY_1_4_STAGES];
-
-const DEFAULT_SUBJECT_GRADE: SubjectGrade = {
-    firstTerm: null,
-    midYear: null,
-    secondTerm: null,
-    finalExam1st: null,
-    finalExam2nd: null,
+const isValidGrade = (grade: number | null | undefined): grade is number => {
+    return grade !== null && grade !== undefined && grade >= 0;
 };
 
-const calculatePrimaryTerms = (grade: SubjectGrade): { firstTerm: number | null; secondTerm: number | null } => {
-    const { october, november, december, january, february, march, april } = grade;
+export function calculateStudentResult(student: Student, subjects: Subject[], settings: SchoolSettings, classData: ClassData): { finalCalculatedGrades: Record<string, CalculatedGrade>, result: StudentResult } {
+    const finalCalculatedGrades: Record<string, CalculatedGrade> = {};
+    let remainingDecisionPoints = settings.decisionPoints;
     
-    let firstTerm: number | null = null;
-    const firstTermMonths = [october, november, december, january];
-    if (firstTermMonths.every(m => m !== null && m !== undefined)) {
-        firstTerm = Math.round((october! + november! + december! + january!) / 4);
+    const isMinisterial = MINISTERIAL_STAGES.includes(classData.stage);
+    if (isMinisterial && classData.ministerialDecisionPoints !== undefined) {
+        remainingDecisionPoints = classData.ministerialDecisionPoints;
     }
-
-    let secondTerm: number | null = null;
-    const secondTermMonths = [february, march, april];
-     if (secondTermMonths.every(m => m !== null && m !== undefined)) {
-        secondTerm = Math.round((february! + march! + april!) / 3);
-    }
-    
-    return { firstTerm, secondTerm };
-};
-
-const calculateAnnualPursuit = (grade: SubjectGrade): number | null => {
-    const { firstTerm, midYear, secondTerm } = grade;
-    if (firstTerm === null || midYear === null || secondTerm === null) {
-        return null;
-    }
-    return Math.round((firstTerm + midYear + secondTerm) / 3);
-};
-
-const calculateFinalGrade1st = (annualPursuit: number | null, finalExam1st: number | null): number | null => {
-    if (annualPursuit === null || finalExam1st === null) {
-        return null;
-    }
-    return Math.round((annualPursuit + finalExam1st) / 2);
-};
-
-// New specific function for Primary Stages 1-4
-const calculatePrimary1_4Result = (student: Student, subjects: Subject[], settings: SchoolSettings): { finalCalculatedGrades: Record<string, CalculatedGrade>, result: StudentResult } => {
-    const calculatedGrades: Record<string, CalculatedGrade> = {};
-    const PASSING_GRADE_PRIMARY = 5;
 
     subjects.forEach(subject => {
-        const grade = { ...DEFAULT_SUBJECT_GRADE, ...(student.grades?.[subject.name] || {}) };
-        calculatedGrades[subject.name] = {
-            annualPursuit: null,
-            finalGrade1st: grade.finalExam1st ?? null,
-            finalGradeWithDecision: grade.finalExam1st ?? null, // No decision points
-            decisionApplied: 0,
-            finalGrade2nd: grade.finalExam2nd ?? null,
-            isExempt: false,
+        const grade: SubjectGrade = {
+            october: null, november: null, december: null, january: null,
+            february: null, march: null, april: null,
+            firstTerm: null, midYear: null, secondTerm: null,
+            finalExam1st: null, finalExam2nd: null,
+            ...student.grades?.[subject.name]
         };
-    });
-
-    const anyFinalGradeMissing = subjects.some(s => calculatedGrades[s.name].finalGrade1st === null);
-    if (anyFinalGradeMissing) {
-        return { finalCalculatedGrades: calculatedGrades, result: { status: 'قيد الانتظار', message: 'بعض درجات الامتحان النهائي لم تدخل بعد' } };
-    }
-
-    const failingSubjects = subjects.filter(subject => {
-        const gradeInfo = calculatedGrades[subject.name];
-        return gradeInfo.finalGrade1st !== null && gradeInfo.finalGrade1st < PASSING_GRADE_PRIMARY;
-    });
-
-    if (failingSubjects.length === 0) {
-        return { finalCalculatedGrades: calculatedGrades, result: { status: 'ناجح', message: 'ناجح' } };
-    } else if (failingSubjects.length <= settings.supplementarySubjectsCount) {
-        const supplementarySubjectsList = failingSubjects.map(s => s.name);
-        return { finalCalculatedGrades: calculatedGrades, result: { status: 'مكمل', message: `مكمل في: ${supplementarySubjectsList.join(', ')}` } };
-    } else {
-        return { finalCalculatedGrades: calculatedGrades, result: { status: 'راسب', message: 'راسب' } };
-    }
-};
-
-// New specific function for Primary Stage 6
-const calculatePrimary6Result = (student: Student, subjects: Subject[]): { finalCalculatedGrades: Record<string, CalculatedGrade>, result: StudentResult } => {
-    const calculatedGrades: Record<string, CalculatedGrade> = {};
-
-    subjects.forEach(subject => {
-        const grade = { ...DEFAULT_SUBJECT_GRADE, ...(student.grades?.[subject.name] || {}) };
-        const { firstTerm: calculatedFirstTerm, secondTerm: calculatedSecondTerm } = calculatePrimaryTerms(grade);
-        const annualPursuit = calculateAnnualPursuit({ ...grade, firstTerm: calculatedFirstTerm, secondTerm: calculatedSecondTerm });
         
-        calculatedGrades[subject.name] = {
+        // --- Calculate Annual Pursuit ---
+        let firstTerm = grade.firstTerm;
+        let secondTerm = grade.secondTerm;
+        
+        // For primary 5/6, calculate terms from monthly grades
+        const isPrimary5_6 = classData.stage === 'الخامس ابتدائي' || classData.stage === 'السادس ابتدائي';
+        if (isPrimary5_6) {
+             const firstTermMonths = [grade.october, grade.november, grade.december, grade.january];
+             if(firstTermMonths.every(isValidGrade)) {
+                 firstTerm = Math.round(firstTermMonths.reduce((a, b) => a + b!, 0) / firstTermMonths.length);
+             }
+             const secondTermMonths = [grade.february, grade.march, grade.april];
+             if(secondTermMonths.every(isValidGrade)) {
+                 secondTerm = Math.round(secondTermMonths.reduce((a, b) => a + b!, 0) / secondTermMonths.length);
+             }
+        }
+
+        let annualPursuit: number | null = null;
+        if (isValidGrade(firstTerm) && isValidGrade(grade.midYear) && isValidGrade(secondTerm)) {
+            annualPursuit = Math.round((firstTerm! + grade.midYear! + secondTerm!) / 3);
+        }
+
+        // --- Exemption Logic ---
+        const isExempt = isValidGrade(annualPursuit) && annualPursuit >= 85 && isValidGrade(grade.midYear) && grade.midYear >= 75;
+
+        // --- Calculate Final Grade (1st attempt) ---
+        let finalGrade1st: number | null = null;
+        if (isExempt) {
+            finalGrade1st = annualPursuit;
+        } else if (isValidGrade(annualPursuit) && isValidGrade(grade.finalExam1st)) {
+            finalGrade1st = Math.round((annualPursuit! + grade.finalExam1st!) / 2);
+        } else if (isValidGrade(annualPursuit) && grade.finalExam1st === null) {
+            // Student has pursuit but didn't take final, they get a zero for the final exam portion.
+            finalGrade1st = Math.round(annualPursuit! / 2);
+        }
+
+
+        finalCalculatedGrades[subject.name] = {
             annualPursuit,
-            finalGrade1st: null, finalGradeWithDecision: null, decisionApplied: 0, finalGrade2nd: null, isExempt: false,
-        };
-    });
-
-    const anyPursuitMissing = subjects.some(s => calculatedGrades[s.name].annualPursuit === null);
-    if (anyPursuitMissing) {
-        return { finalCalculatedGrades: calculatedGrades, result: { status: 'قيد الانتظار', message: 'بعض درجات السعي لم تحسب بعد' } };
-    }
-
-    return { finalCalculatedGrades: calculatedGrades, result: { status: 'مؤهل', message: 'مؤهل للامتحان الوزاري' } };
-};
-
-
-const calculateMinisterialResult = (student: Student, subjects: Subject[], decisionPoints: number, supplementarySubjects: number): { finalCalculatedGrades: Record<string, CalculatedGrade>, result: StudentResult } => {
-    const calculatedGrades: Record<string, CalculatedGrade> = {};
-    const academicSubjects = subjects; 
-    let finalGrades = {} as Record<string, CalculatedGrade>;
-
-    // Phase 1: Calculate all annual pursuits and initialize grades object.
-    subjects.forEach(subject => {
-        const grade = { ...DEFAULT_SUBJECT_GRADE, ...(student.grades?.[subject.name] || {}) };
-        const annualPursuit = calculateAnnualPursuit(grade);
-        finalGrades[subject.name] = {
-            annualPursuit,
-            finalGrade1st: null,
-            finalGradeWithDecision: null,
+            finalGrade1st,
+            finalGradeWithDecision: finalGrade1st, // Initially same as final grade
             decisionApplied: 0,
             finalGrade2nd: null,
-            isExempt: false,
+            isExempt,
+            annualPursuitWithDecision: annualPursuit,
+            decisionAppliedOnPursuit: 0,
         };
     });
 
-    // Phase 2: Check for any missing pursuit grades.
-    const anyPursuitMissing = academicSubjects.some(s => finalGrades[s.name].annualPursuit === null);
-    if (anyPursuitMissing) {
-        return { finalCalculatedGrades: finalGrades, result: { status: 'قيد الانتظار', message: 'بعض درجات السعي لم تحسب بعد' } };
-    }
+    // --- Apply Decision Points (Qarar) ---
+    const PASSING_GRADE = 50;
 
-    // Phase 3: Identify originally failing subjects and sort them to help the easiest ones first.
-    const originalFailingSubjects = academicSubjects
-        .map(subject => ({ name: subject.name, grade: finalGrades[subject.name].annualPursuit }))
-        .filter(s => s.grade !== null && s.grade < PASSING_GRADE)
-        .sort((a, b) => b.grade! - a.grade!);
+    // First, for Ministerial stages on annual pursuit
+    if (isMinisterial) {
+        const ministeralDecisionPoints = classData.ministerialDecisionPoints ?? 5;
+        let remainingMinisterialDecisionPoints = ministeralDecisionPoints;
 
-    // If student is already passing everything, they are qualified.
-    if (originalFailingSubjects.length === 0) {
-        return {
-            finalCalculatedGrades: finalGrades,
-            result: { status: 'مؤهل', message: 'مؤهل للأمتحان الوزاري' }
-        };
-    }
-
-    // Phase 4: Simulate applying decision points to see how many subjects can be saved.
-    let remainingDecisionPoints = decisionPoints;
-    const potentialDecisionApplications: { name: string; amount: number }[] = [];
-    
-    originalFailingSubjects.forEach(subject => {
-        const pointsNeeded = PASSING_GRADE - subject.grade!;
-        if (remainingDecisionPoints >= pointsNeeded) {
-            remainingDecisionPoints -= pointsNeeded;
-            potentialDecisionApplications.push({ name: subject.name, amount: pointsNeeded });
-        }
-    });
-
-    // Phase 5: Determine eligibility based on the number of subjects STILL failing after the simulated help.
-    const finalFailingCount = originalFailingSubjects.length - potentialDecisionApplications.length;
-
-    if (finalFailingCount > supplementarySubjects) {
-        // The student is not qualified. Return original grades without applying any decision.
-        return {
-            finalCalculatedGrades: finalGrades, 
-            result: { status: 'غير مؤهل', message: 'غير مؤهل للأمتحان الوزاري' }
-        };
-    }
-    
-    // Phase 7: Determine the final status message.
-    if (potentialDecisionApplications.length === 0) {
-        // Qualified, but no decision points were used. This happens if they fail in 1-3 subjects but need more points than available.
-        return {
-            finalCalculatedGrades: finalGrades,
-            result: { status: 'مؤهل', message: 'مؤهل للأمتحان الوزاري' }
-        };
-    } else {
-        // Qualified, and decision points were used.
-        const subjectNames = potentialDecisionApplications.map(s => `${s.name} (+${s.amount})`).join(', ');
-        
-        const message = finalFailingCount === 0 
-            ? `مؤهل بقرار. المواد: ${subjectNames}`
-            : `مؤهل. تم المساعدة في: ${subjectNames}`;
-        
-        return {
-            finalCalculatedGrades: finalGrades,
-            result: { status: 'مؤهل بقرار', message }
-        };
-    }
-};
-
-const calculateStandardResult = (student: Student, subjects: Subject[], settings: SchoolSettings, stage: string): { finalCalculatedGrades: Record<string, CalculatedGrade>, result: StudentResult } => {
-    const calculatedGrades: Record<string, CalculatedGrade> = {};
-    const studentGradesMap: Record<string, SubjectGrade> = {};
-    const allowExemption = !NON_EXEMPT_STAGES.includes(stage);
-
-    subjects.forEach(subject => {
-        const grade = { ...DEFAULT_SUBJECT_GRADE, ...(student.grades?.[subject.name] || {}) };
-        
-        // Special handling for 5th primary grade
-        if (stage === PRIMARY_5_STAGE) {
-            const { firstTerm: calculatedFirstTerm, secondTerm: calculatedSecondTerm } = calculatePrimaryTerms(grade);
-            grade.firstTerm = calculatedFirstTerm;
-            grade.secondTerm = calculatedSecondTerm;
-        }
-
-        studentGradesMap[subject.name] = grade;
-
-        const annualPursuit = calculateAnnualPursuit(grade);
-        calculatedGrades[subject.name] = {
-            annualPursuit,
-            finalGrade1st: null,
-            finalGradeWithDecision: null,
-            decisionApplied: 0,
-            finalGrade2nd: null,
-            isExempt: false,
-        };
-    });
-
-    if (allowExemption) {
-        const annualPursuits = subjects.map(s => calculatedGrades[s.name].annualPursuit).filter(g => g !== null) as number[];
-        if (subjects.length > 0 && annualPursuits.length === subjects.length) {
-            const total = annualPursuits.reduce((sum, grade) => sum + grade, 0);
-            const average = total / annualPursuits.length;
-            const minGrade = Math.min(...annualPursuits);
-            if (average >= 85 && minGrade >= 75) {
-                subjects.forEach(subject => {
-                    const gradeInfo = calculatedGrades[subject.name];
-                    gradeInfo.isExempt = true;
-                    gradeInfo.finalGrade1st = gradeInfo.annualPursuit;
-                    gradeInfo.finalGradeWithDecision = gradeInfo.annualPursuit;
-                });
-                return { finalCalculatedGrades: calculatedGrades, result: { status: 'ناجح', message: 'معفو اعفاء عام' } };
-            }
-        }
-    }
-
-    const individualExemptSubjects: string[] = [];
-    if (allowExemption) {
         subjects.forEach(subject => {
-            const gradeInfo = calculatedGrades[subject.name];
-            if (gradeInfo.annualPursuit !== null && gradeInfo.annualPursuit >= 90) {
-                gradeInfo.isExempt = true;
-                gradeInfo.finalGrade1st = gradeInfo.annualPursuit;
-                gradeInfo.finalGradeWithDecision = gradeInfo.annualPursuit;
-                individualExemptSubjects.push(subject.name);
+            const calculated = finalCalculatedGrades[subject.name];
+            if (calculated.annualPursuit !== null && calculated.annualPursuit < PASSING_GRADE && calculated.annualPursuit >= (PASSING_GRADE - ministeralDecisionPoints)) {
+                const pointsNeeded = PASSING_GRADE - calculated.annualPursuit;
+                if (remainingMinisterialDecisionPoints >= pointsNeeded) {
+                    calculated.annualPursuitWithDecision = PASSING_GRADE;
+                    calculated.decisionAppliedOnPursuit = pointsNeeded;
+                    remainingMinisterialDecisionPoints -= pointsNeeded;
+                }
             }
         });
     }
 
-    subjects.forEach(subject => {
-        const gradeInfo = calculatedGrades[subject.name];
-        if (!gradeInfo.isExempt) {
-            const grade = studentGradesMap[subject.name];
-            gradeInfo.finalGrade1st = calculateFinalGrade1st(gradeInfo.annualPursuit, grade.finalExam1st);
-            gradeInfo.finalGradeWithDecision = gradeInfo.finalGrade1st;
-        }
-    });
 
-    const nonExemptSubjects = subjects.filter(s => !calculatedGrades[s.name].isExempt);
-    const anyNonExemptFinalGradeMissing = nonExemptSubjects.some(subject => calculatedGrades[subject.name]?.finalGrade1st === null);
-
-    if (anyNonExemptFinalGradeMissing) {
-        const anyGradeEntered = Object.values(student.grades || {}).length > 0 && Object.values(student.grades || {}).some(g => g.firstTerm !== null || g.midYear !== null || g.secondTerm !== null || g.finalExam1st !== null);
-        if (!anyGradeEntered && individualExemptSubjects.length === 0) {
-            return { finalCalculatedGrades: calculatedGrades, result: { status: 'قيد الانتظار', message: 'لم تدخل أي درجات' } };
-        }
-        return { finalCalculatedGrades: calculatedGrades, result: { status: 'قيد الانتظار', message: 'بعض الدرجات لم تدخل بعد' } };
-    }
-
-    const preliminaryFailingCount = nonExemptSubjects.filter(subject => {
-        const gradeInfo = calculatedGrades[subject.name];
-        return gradeInfo?.finalGrade1st !== null && gradeInfo.finalGrade1st < PASSING_GRADE;
-    }).length;
-
-    if (preliminaryFailingCount > settings.supplementarySubjectsCount) {
-        return { finalCalculatedGrades: calculatedGrades, result: { status: 'راسب', message: 'راسب' } };
-    }
-
-    let remainingDecisionPoints = settings.decisionPoints;
-    let decisionAppliedSubjects: { name: string, amount: number }[] = [];
-
-    const failingSubjectsForDecision = nonExemptSubjects
-        .map(subject => ({ name: subject.name, grade: calculatedGrades[subject.name]?.finalGrade1st }))
-        .filter(s => s.grade !== null && s.grade < PASSING_GRADE)
-        .sort((a, b) => b.grade! - a.grade!);
-
-    failingSubjectsForDecision.forEach(subject => {
-        const gradeInfo = calculatedGrades[subject.name];
-        if (gradeInfo.finalGrade1st! < PASSING_GRADE && remainingDecisionPoints > 0) {
-            const pointsNeeded = PASSING_GRADE - gradeInfo.finalGrade1st!;
-            if (remainingDecisionPoints >= pointsNeeded) {
-                remainingDecisionPoints -= pointsNeeded;
-                gradeInfo.finalGradeWithDecision = PASSING_GRADE;
-                gradeInfo.decisionApplied = pointsNeeded;
-                decisionAppliedSubjects.push({ name: subject.name, amount: pointsNeeded });
+    // Then, for non-ministerial stages on final grade
+    if (!isMinisterial) {
+        subjects.forEach(subject => {
+            const calculated = finalCalculatedGrades[subject.name];
+            if (calculated.finalGrade1st !== null && calculated.finalGrade1st < PASSING_GRADE && calculated.finalGrade1st >= (PASSING_GRADE - remainingDecisionPoints)) {
+                const pointsNeeded = PASSING_GRADE - calculated.finalGrade1st;
+                if (remainingDecisionPoints >= pointsNeeded) {
+                    calculated.finalGradeWithDecision = PASSING_GRADE;
+                    calculated.decisionApplied = pointsNeeded;
+                    remainingDecisionPoints -= pointsNeeded;
+                }
             }
+        });
+    }
+
+    // --- Calculate Final Grade (2nd attempt) ---
+    subjects.forEach(subject => {
+        const grade = student.grades?.[subject.name];
+        const calculated = finalCalculatedGrades[subject.name];
+        
+        if (isValidGrade(calculated.annualPursuit) && isValidGrade(grade?.finalExam2nd)) {
+            calculated.finalGrade2nd = Math.round((calculated.annualPursuit! + grade!.finalExam2nd!) / 2);
         }
     });
 
-    const finalFailingCount = nonExemptSubjects.filter(subject => {
-        const gradeInfo = calculatedGrades[subject.name];
-        return gradeInfo.finalGradeWithDecision !== null && gradeInfo.finalGradeWithDecision < PASSING_GRADE;
-    }).length;
+    // --- Determine Overall Result ---
+    let failingSubjectsCount1stAttempt = 0;
+    let failingSubjectsCount2ndAttempt = 0;
+    let anySecondAttemptGradeEntered = false;
 
-    let status: StudentResult['status'];
-    let baseMessage = '';
+    subjects.forEach(subject => {
+        const calculated = finalCalculatedGrades[subject.name];
+        
+        // 1st attempt result
+        const gradeToCheck = isMinisterial ? calculated.annualPursuitWithDecision : calculated.finalGradeWithDecision;
+        if (gradeToCheck !== null && gradeToCheck < PASSING_GRADE && !calculated.isExempt) {
+            failingSubjectsCount1stAttempt++;
+        }
 
-    if (finalFailingCount === 0) {
-        status = 'ناجح';
-        baseMessage = decisionAppliedSubjects.length > 0
-            ? `ناجح بقرار. المواد: ${decisionAppliedSubjects.map(s => `${s.name} (+${s.amount})`).join(', ')}`
-            : 'ناجح';
+        // 2nd attempt result
+        if (calculated.finalGrade2nd !== null) {
+            anySecondAttemptGradeEntered = true;
+            if (calculated.finalGrade2nd < PASSING_GRADE) {
+                failingSubjectsCount2ndAttempt++;
+            }
+        } else if (gradeToCheck !== null && gradeToCheck < PASSING_GRADE && !calculated.isExempt) {
+            // if they were failing in the first attempt, they count as failing in the second until they pass
+            failingSubjectsCount2ndAttempt++;
+        }
+    });
+
+    const supplementarySubjectsLimit = isMinisterial ? (classData.ministerialSupplementarySubjects ?? 3) : settings.supplementarySubjectsCount;
+    let status: StudentResult['status'] = 'قيد الانتظار';
+    let message = 'النتيجة قيد الانتظار';
+
+    if (anySecondAttemptGradeEntered) {
+        if (failingSubjectsCount2ndAttempt === 0) {
+            status = 'ناجح';
+            message = 'ناجح (الدور الثاني)';
+        } else {
+            status = 'راسب';
+            message = `راسب (الدور الثاني)`;
+        }
     } else {
-        status = 'مكمل';
-        const supplementarySubjectsList = nonExemptSubjects
-            .filter(subject => {
-                const gradeInfo = calculatedGrades[subject.name];
-                return gradeInfo.finalGradeWithDecision !== null && gradeInfo.finalGradeWithDecision < PASSING_GRADE;
-            })
-            .map(s => s.name);
-        baseMessage = `مكمل في: ${supplementarySubjectsList.join(', ')}`;
-        if (decisionAppliedSubjects.length > 0) {
-            const decisionMessage = decisionAppliedSubjects.map(s => `${s.name} (+${s.amount})`).join(', ');
-            baseMessage += ` (استخدم قرار في: ${decisionMessage})`;
-        }
-    }
-
-    let finalMessage = baseMessage;
-    if (individualExemptSubjects.length > 0) {
-        finalMessage += `. معفو في: ${individualExemptSubjects.join(', ')}`;
-    }
-
-    subjects.forEach(subject => {
-        const gradeInfo = calculatedGrades[subject.name];
-        const grade = studentGradesMap[subject.name];
-        if (!gradeInfo.isExempt && grade.finalExam2nd !== null) {
-            if (gradeInfo.annualPursuit !== null) {
-                gradeInfo.finalGrade2nd = Math.round((gradeInfo.annualPursuit + grade.finalExam2nd) / 2);
+         if (isMinisterial) {
+            if (failingSubjectsCount1stAttempt === 0) {
+                status = 'مؤهل';
+                message = 'مؤهل لدخول الامتحان الوزاري';
+            } else if (failingSubjectsCount1stAttempt <= supplementarySubjectsLimit) {
+                status = 'مؤهل بقرار';
+                message = `مؤهل لدخول الامتحان الوزاري بقرار (${failingSubjectsCount1stAttempt} دروس)`;
             } else {
-                gradeInfo.finalGrade2nd = grade.finalExam2nd;
+                status = 'غير مؤهل';
+                message = `غير مؤهل لدخول الامتحان الوزاري (${failingSubjectsCount1stAttempt} دروس)`;
+            }
+        } else {
+            if (failingSubjectsCount1stAttempt === 0) {
+                status = 'ناجح';
+                message = 'ناجح';
+            } else if (failingSubjectsCount1stAttempt <= supplementarySubjectsLimit) {
+                status = 'مكمل';
+                message = `مكمل بـ ${failingSubjectsCount1stAttempt} دروس`;
+            } else {
+                status = 'راسب';
+                message = `راسب بـ ${failingSubjectsCount1stAttempt} دروس`;
             }
         }
-    });
-
-    return { finalCalculatedGrades: calculatedGrades, result: { status, message: finalMessage.trim() } };
-};
-
-export const calculateStudentResult = (student: Student, subjects: Subject[], settings: SchoolSettings, classData: ClassData): { finalCalculatedGrades: Record<string, CalculatedGrade>, result: StudentResult } => {
-    const { stage, ministerialDecisionPoints = 5, ministerialSupplementarySubjects = 3 } = classData;
-    
-    // Route to special primary school calculators first
-    if (PRIMARY_1_4_STAGES.includes(stage)) {
-        return calculatePrimary1_4Result(student, subjects || [], settings);
     }
 
-    const isMinisterialStage = MINISTERIAL_STAGES.includes(stage);
+    const result: StudentResult = { status, message };
 
-    if (isMinisterialStage) {
-        if (stage === PRIMARY_6_STAGE) {
-            return calculatePrimary6Result(student, subjects || []);
-        }
-        return calculateMinisterialResult(student, subjects || [], ministerialDecisionPoints, ministerialSupplementarySubjects);
-    }
-    
-    return calculateStandardResult(student, subjects || [], settings, stage);
-};
+    return { finalCalculatedGrades, result };
+}

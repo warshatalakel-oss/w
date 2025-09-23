@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 // FIX: Added missing type import
-import type { User, SchoolLevel, ClassData, Student, AppNotification } from '../../types';
+import type { User, SchoolLevel, ClassData, Student, AppNotification } from '../../../types.ts';
 import { Plus, UserCog, LogOut, Copy, Check, Edit, Trash2, Save, X, RefreshCw, SendHorizonal, Users, ChevronDown, ChevronUp, Power, PowerOff } from 'lucide-react';
-import { SCHOOL_LEVELS } from '../../constants';
+import { SCHOOL_LEVELS } from '../../../constants.ts';
 import { v4 as uuidv4 } from 'uuid';
-import { db } from '../../lib/firebase';
+import { db } from '../../../lib/firebase.ts';
 
 interface AdminDashboardProps {
     currentUser: User;

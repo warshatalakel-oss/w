@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import type { User, SchoolSettings, StudentSubmission, ParentContact, Student } from '../../types';
-import { db } from '../../lib/firebase';
+import type { User, SchoolSettings, StudentSubmission, ParentContact, Student } from '../../types.ts';
+import { db } from '../../lib/firebase.ts';
 import { Key, Send, ClipboardList, RefreshCw, Copy, Check, Eye, X, Edit, Trash2, FileDown, Loader2, MessageSquare, Plus, UserPlus, PlayCircle, Users as UsersIcon, Download, Sparkles } from 'lucide-react';
-import { GRADE_LEVELS } from '../../constants';
+import { GRADE_LEVELS } from '../../constants.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { GoogleGenAI } from "@google/genai";
 

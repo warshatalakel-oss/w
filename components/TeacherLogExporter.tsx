@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade, Subject, SubjectGrade } from '../types';
-import { GRADE_LEVELS } from '../constants';
-import { calculateStudentResult } from '../lib/gradeCalculator';
-import TeacherLogPage from './TeacherLogPage';
+import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade, Subject, SubjectGrade } from '../types.ts';
+import { GRADE_LEVELS } from '../constants.ts';
+import { calculateStudentResult } from '../lib/gradeCalculator.ts';
+import TeacherLogPage from './TeacherLogPage.tsx';
 import { Loader2, FileDown } from 'lucide-react';
 
 declare const jspdf: any;

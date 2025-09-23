@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Home, LogOut, ChevronsRight, ChevronsLeft, MessageSquare, Award } from 'lucide-react';
-import type { SchoolSettings, ClassData, User as CurrentUser, StudentSubmission, ParentContact } from '../../types';
-import { DEFAULT_SCHOOL_SETTINGS } from '../../constants';
-import { db } from '../../lib/firebase';
-import CounselorParentCommunication from './CounselorParentCommunication';
-import BehavioralHonorsManager from './BehavioralHonorsManager';
-import HonorBoardView from '../shared/HonorBoardView';
+import type { SchoolSettings, ClassData, User as CurrentUser, StudentSubmission, ParentContact } from '../../types.ts';
+import { DEFAULT_SCHOOL_SETTINGS } from '../../constants.ts';
+import { db } from '../../lib/firebase.ts';
+import CounselorParentCommunication from './CounselorParentCommunication.tsx';
+import BehavioralHonorsManager from './BehavioralHonorsManager.tsx';
+import HonorBoardView from '../shared/HonorBoardView.tsx';
 
 interface NavItem {
     view: 'home' | 'parent_communication' | 'honors_manager' | 'honor_board_view';

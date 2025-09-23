@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import type { ClassData, Student, SubjectGrade, SchoolSettings, CalculatedGrade, StudentResult } from '../types';
-import { calculateStudentResult } from '../lib/gradeCalculator';
+import type { ClassData, Student, SubjectGrade, SchoolSettings, CalculatedGrade, StudentResult } from '../types.ts';
+import { calculateStudentResult } from '../lib/gradeCalculator.ts';
 import { UserPlus, Trash2, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import { db } from '../lib/firebase';
+import { db } from '../lib/firebase.ts';
 
 declare const XLSX: any;
 

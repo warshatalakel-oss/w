@@ -1,35 +1,35 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { SettingsIcon, BookUser, Home, Printer, BarChart, ClipboardList, Archive, User, LogOut, Eye, ChevronsRight, ChevronsLeft, BookCopy, LayoutGrid, ClipboardCheck, Info, Presentation, Brush, Mail, BookMarked, BookText, FileText, PlayCircle, X, Users, CalendarClock, Bell, ClipboardPaste } from 'lucide-react';
-import type { SchoolSettings, ClassData, User as CurrentUser, Teacher } from '../types.ts';
-import { DEFAULT_SCHOOL_SETTINGS } from '../constants.ts';
-import { db } from '../lib/firebase.ts';
+import type { SchoolSettings, ClassData, User as CurrentUser, Teacher } from './types.ts';
+import { DEFAULT_SCHOOL_SETTINGS } from './constants.ts';
+import { db } from './lib/firebase.ts';
 import { v4 as uuidv4 } from 'uuid';
 
-import Settings from './Settings.tsx';
-import ClassManager from './ClassManager.tsx';
-import GradeSheet from './GradeSheet.tsx';
-import ExportManager from './ExportManager.tsx';
-import StatisticsManager from './StatisticsManager.tsx';
-import TeacherLogExporter from './TeacherLogExporter.tsx';
-import AdminLogExporter from './AdminLogExporter.tsx';
-import PrincipalDashboard from './principal/PrincipalDashboard.tsx';
-import ReceiveTeacherLog from './principal/ReceiveTeacherLog.tsx';
-import TeacherGradeSheet from './teacher/TeacherGradeSheet.tsx';
-import ElectronicLogbookGenerator from './principal/ElectronicLogbookGenerator.tsx';
-import GradeBoardExporter from './principal/GradeBoardExporter.tsx';
-import OralExamListsExporter from './principal/OralExamListsExporter.tsx';
-import PromotionLog from './principal/PromotionLog.tsx';
-import AboutModal from './AboutModal.tsx';
-import ExamHallsManager from './principal/ExamHallsManager.tsx';
-import CoverEditor from './principal/CoverEditor.tsx';
+import Settings from './components/Settings.tsx';
+import ClassManager from './components/ClassManager.tsx';
+import GradeSheet from './components/GradeSheet.tsx';
+import ExportManager from './components/ExportManager.tsx';
+import StatisticsManager from './components/StatisticsManager.tsx';
+import TeacherLogExporter from './components/TeacherLogExporter.tsx';
+import AdminLogExporter from './components/AdminLogExporter.tsx';
+import PrincipalDashboard from './components/principal/PrincipalDashboard.tsx';
+import ReceiveTeacherLog from './components/principal/ReceiveTeacherLog.tsx';
+import TeacherGradeSheet from './components/teacher/TeacherGradeSheet.tsx';
+import ElectronicLogbookGenerator from './components/principal/ElectronicLogbookGenerator.tsx';
+import GradeBoardExporter from './components/principal/GradeBoardExporter.tsx';
+import OralExamListsExporter from './components/principal/OralExamListsExporter.tsx';
+import PromotionLog from './components/principal/PromotionLog.tsx';
+import AboutModal from './components/AboutModal.tsx';
+import ExamHallsManager from './components/principal/ExamHallsManager.tsx';
+import CoverEditor from './components/principal/CoverEditor.tsx';
 // FIX: Import ExamCardsExporter component to resolve missing name error.
-import ExamCardsExporter from './principal/ExamCardsExporter.tsx';
-import AdministrativeCorrespondence from './principal/AdministrativeCorrespondence.tsx';
-import PrimaryLogExporter from './principal/PrimaryLogExporter.tsx';
-import AbsenceManager from './principal/AbsenceManager.tsx';
-import SchoolArchive from './principal/SchoolArchive.tsx';
-import ExamControlLog from './principal/ExamControlLog.tsx';
+import ExamCardsExporter from './components/principal/ExamCardsExporter.tsx';
+import AdministrativeCorrespondence from './components/principal/AdministrativeCorrespondence.tsx';
+import PrimaryLogExporter from './components/principal/PrimaryLogExporter.tsx';
+import AbsenceManager from './components/principal/AbsenceManager.tsx';
+import SchoolArchive from './components/principal/SchoolArchive.tsx';
+import ExamControlLog from './components/principal/ExamControlLog.tsx';
 
 
 type View = 'home' | 'settings' | 'class_manager' | 'grade_sheet' | 'export_results' | 'statistics' | 'teacher_log_exporter' | 'admin_log_exporter' | 'principal_dashboard' | 'receive_teacher_logs' | 'electronic_logbook' | 'grade_board' | 'oral_exam_lists' | 'promotion_log' | 'exam_halls' | 'cover_editor' | 'exam_cards' | 'exam_control_log' | 'administrative_correspondence' | 'primary_school_log' | 'school_archive' | 'absence_manager' | 'parent_invitations';
