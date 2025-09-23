@@ -2,9 +2,9 @@ import React, { useState, useMemo } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade } from '../../types';
 import { GRADE_LEVELS } from '../../constants';
-import { calculateStudentResult } from '../../lib/gradeCalculator';
+import { calculateStudentResult } from '../../lib/gradeCalculator.ts';
 import { Loader2, FileDown, Upload, BarChart2, Download } from 'lucide-react';
-import GradeBoardPage from './GradeBoardPage';
+import GradeBoardPage from './GradeBoardPage.tsx';
 
 declare const jspdf: any;
 declare const html2canvas: any;

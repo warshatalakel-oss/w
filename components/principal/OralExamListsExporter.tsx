@@ -3,7 +3,7 @@ import * as ReactDOM from 'react-dom/client';
 import type { ClassData, SchoolSettings, Student } from '../../types';
 import { GRADE_LEVELS } from '../../constants';
 import { Loader2, FileDown, BarChart2, AlertCircle } from 'lucide-react';
-import OralExamListPage from './OralExamListPage';
+import OralExamListPage from './OralExamListPage.tsx';
 import { v4 as uuidv4 } from 'uuid';
 
 declare const jspdf: any;
@@ -263,59 +263,4 @@ export default function OralExamListsExporter({ classes, settings }: { classes: 
                 <div>
                     <label className="block text-md font-bold text-gray-700 mb-2">7. شعار المدرسة (اختياري)</label>
                     <input type="file" onChange={e => handleLogoChange(e, 'school')} accept="image/*" className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"/>
-                    {logos.school && <img src={logos.school} alt="Logo Preview" className="mt-2 h-12 w-12 object-contain rounded-full border p-1" />}
-                </div>
-            </div>
-
-            {!isTemplateReady && selectedSubject && (
-                <div className="bg-orange-100 border-l-4 border-orange-500 text-orange-700 p-4 my-4" role="alert">
-                    <div className="flex">
-                        <div className="py-1"><AlertCircle className="h-6 w-6 text-orange-500 mr-4" /></div>
-                        <div>
-                            <p className="font-bold">ملاحظة</p>
-                            <p>النموذج التفصيلي لهذه المادة غير معرف حالياً. سيتم استخدام نموذج بسيط.</p>
-                        </div>
-                    </div>
-                </div>
-            )}
-            
-            <div className="flex justify-center gap-4 mt-4 border-t pt-6">
-                <button onClick={handleGeneratePreview} disabled={selectedClassIds.length === 0 || !isTemplateReady} className="flex items-center gap-2 px-6 py-3 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 transition disabled:bg-gray-400">
-                    <BarChart2 size={20} />
-                    <span>عرض النموذج</span>
-                </button>
-                {reportPages.length > 0 && (
-                     <button onClick={handleExportPdf} disabled={isExporting} className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition disabled:bg-gray-400">
-                        <FileDown size={20} />
-                        <span>تصدير PDF</span>
-                    </button>
-                )}
-            </div>
-            
-            {reportPages.length > 0 && syntheticClassDataForPreview && (
-                <div className="mt-8">
-                    <h3 className="text-xl font-bold text-center mb-4">معاينة القوائم</h3>
-                    <div className="space-y-8">
-                        {reportPages.map((pageStudents, index) => (
-                             <div key={index} className="p-4 bg-gray-100 rounded-lg overflow-x-auto shadow-inner">
-                                <OralExamListPage
-                                    settings={settings}
-                                    logos={logos}
-                                    students={pageStudents}
-                                    classData={syntheticClassDataForPreview}
-                                    subjectName={selectedSubject}
-                                    pageInfo={{ pageNumber: index + 1, totalPages: reportPages.length }}
-                                    isExporting={false}
-                                    committeeMemberName={committeeMemberName}
-                                    committeeHeadName={committeeHeadName}
-                                    examRound={examRound}
-                                    examType={examType}
-                                />
-                             </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
+                    {logos.school && <img src={logos.school} alt="Logo Preview" className="mt-2 h-12 w-12 object-contain rounded-full

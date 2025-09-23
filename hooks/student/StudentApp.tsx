@@ -1,23 +1,22 @@
-
-
 import React, { useState, useEffect, useMemo } from 'react';
-import type { User, StudentEvaluation, StudentNotification, Conversation, ScheduleData, PublishedMonthlyResult, BehaviorDeduction, XOChallenge, ClassData, Student, Homework, HomeworkSubmission, HomeworkProgress } from '../../types';
-import { LogOut, Home, Bell, Shield, BookOpen, Calendar, ClipboardCheck, ShieldBan, Gamepad2, Swords, ChevronsLeft, ChevronsRight, Award, Trophy, ListChecks } from 'lucide-react';
-import { db, storage } from '../../lib/firebase';
-import StudentDashboard from './StudentDashboard';
-import StudentNotificationsModal from './StudentNotificationsModal';
-import AdministrativeMessages from './AdministrativeMessages';
-import TeacherMessages from './TeacherMessages';
-import StudentScheduleView from './StudentScheduleView';
-import StudentMonthlyResults from './StudentMonthlyResults';
-import StudentBehaviorView from './StudentBehaviorView';
-import XoLeaderboard from './XoLeaderboard';
-import XoChallenges from './XoChallenges';
-import HonorBoardView from '../../components/shared/HonorBoardView';
-import MyHomework from './MyHomework';
-import HallOfFame from '../../components/shared/HallOfFame';
-import MyProgress from './MyProgress';
-import HomeworkSubmissionView from './HomeworkSubmissionView';
+import type { User, StudentEvaluation, StudentNotification, Conversation, ScheduleData, PublishedMonthlyResult, BehaviorDeduction, XOChallenge, ClassData, Student, Homework, HomeworkSubmission, HomeworkProgress } from '../../types.ts';
+import { LogOut, Home, Bell, Shield, BookOpen, Calendar, ClipboardCheck, ShieldBan, Gamepad2, Swords, ChevronsLeft, ChevronsRight, Award, Trophy, ListChecks, BookText } from 'lucide-react';
+import { db, storage } from '../../lib/firebase.ts';
+import StudentDashboard from '../../components/student/StudentDashboard.tsx';
+import StudentNotificationsModal from '../../components/student/StudentNotificationsModal.tsx';
+import AdministrativeMessages from '../../components/student/AdministrativeMessages.tsx';
+import TeacherMessages from '../../components/student/TeacherMessages.tsx';
+import StudentScheduleView from '../../components/student/StudentScheduleView.tsx';
+import StudentMonthlyResults from '../../components/student/StudentMonthlyResults.tsx';
+import StudentBehaviorView from '../../components/student/StudentBehaviorView.tsx';
+import XoLeaderboard from '../../components/student/XoLeaderboard.tsx';
+import XoChallenges from '../../components/student/XoChallenges.tsx';
+import HonorBoardView from '../../components/shared/HonorBoardView.tsx';
+import MyHomework from '../../components/student/MyHomework.tsx';
+import HallOfFame from '../../components/shared/HallOfFame.tsx';
+import MyProgress from '../../components/student/MyProgress.tsx';
+import HomeworkSubmissionView from '../../components/student/HomeworkSubmissionView.tsx';
+import EducationalEncyclopedia from '../../components/student/EducationalEncyclopedia.tsx';
 
 
 interface StudentAppProps {
@@ -25,7 +24,7 @@ interface StudentAppProps {
     onLogout: () => void;
 }
 
-type StudentView = 'dashboard' | 'admin_messages' | 'teacher_messages' | 'schedule' | 'monthly_results' | 'behavior_log' | 'xo_game' | 'challenges' | 'honor_board' | 'my_homework' | 'my_progress' | 'hall_of_fame' | 'homework_submission';
+type StudentView = 'dashboard' | 'admin_messages' | 'teacher_messages' | 'schedule' | 'monthly_results' | 'behavior_log' | 'xo_game' | 'challenges' | 'honor_board' | 'my_homework' | 'my_progress' | 'hall_of_fame' | 'homework_submission' | 'educational_encyclopedia';
 
 export default function StudentApp({ currentUser, onLogout }: StudentAppProps) {
     const [view, setView] = useState<StudentView>('my_homework');
@@ -51,8 +50,6 @@ export default function StudentApp({ currentUser, onLogout }: StudentAppProps) {
         if (!currentUser.principalId || !currentUser.id) return;
 
         const principalId = currentUser.principalId;
-
-        // ... (existing useEffect fetches)
 
         const evalRef = db.ref(`evaluations/${principalId}/${currentUser.id}`);
         const evalCallback = (s: any) => setEvaluations(s.val() ? Object.values(s.val()) : []);
@@ -121,13 +118,16 @@ export default function StudentApp({ currentUser, onLogout }: StudentAppProps) {
             const homeworkRef = db.ref(`homework_data/${principalId}`);
             const submissionsRef = db.ref(`homework_submissions/${principalId}/${currentUser.id}`);
             const progressRef = db.ref(`homework_progress/${principalId}/${currentUser.id}`);
-        
-            // This logic is complex because we only want *active* homeworks
             const activeHomeworkRef = db.ref(`active_homework/${principalId}/${currentUser.classId}`);
-        
+
             const activeHomeworkCallback = (snapshot: any) => {
-                const activeHomeworksMap = snapshot.val() || {}; // { subjectId: { homeworkId: "..." } }
-                const activeIds = Object.values(activeHomeworksMap).map((item: any) => item.homeworkId);
+                const studentClassActive = snapshot.val() || {};
+                
+                if (Object.keys(studentClassActive).length === 0) {
+                    setActiveHomeworks([]);
+                    return;
+                }
+                const activeIds = Object.values(studentClassActive).map((item: any) => item.homeworkId);
                 
                 if (activeIds.length > 0) {
                     homeworkRef.get().then(allHomeworksSnap => {
@@ -266,6 +266,8 @@ export default function StudentApp({ currentUser, onLogout }: StudentAppProps) {
                 return null;
             case 'hall_of_fame':
                 return <HallOfFame currentUser={currentUser} classes={allClasses} />;
+            case 'educational_encyclopedia':
+                return <EducationalEncyclopedia currentUser={currentUser} classes={allClasses} />;
             case 'xo_game':
                 return <XoLeaderboard 
                             currentUser={currentUser} 
@@ -311,6 +313,11 @@ export default function StudentApp({ currentUser, onLogout }: StudentAppProps) {
                         <button onClick={() => setView('hall_of_fame')} className={`flex items-center w-full gap-3 px-4 py-2 rounded-lg transition-colors ${view === 'hall_of_fame' ? 'bg-cyan-600 text-white' : 'hover:bg-gray-700'} ${isSidebarCollapsed ? 'justify-center' : ''}`} title={isSidebarCollapsed ? 'لوحة الأبطال' : ''}>
                             <Trophy size={20} />{!isSidebarCollapsed && <span>لوحة الأبطال</span>}
                         </button>
+                        {['الاول متوسط', 'الثاني متوسط', 'الثالث متوسط'].includes(currentUser.stage || '') && (
+                            <button onClick={() => setView('educational_encyclopedia')} className={`flex items-center w-full gap-3 px-4 py-2 rounded-lg transition-colors ${view === 'educational_encyclopedia' ? 'bg-cyan-600 text-white' : 'hover:bg-gray-700'} ${isSidebarCollapsed ? 'justify-center' : ''}`} title={isSidebarCollapsed ? 'الموسوعة التعليمية' : ''}>
+                                <BookText size={20} />{!isSidebarCollapsed && <span>الموسوعة التعليمية</span>}
+                            </button>
+                        )}
                          <button onClick={() => setView('schedule')} className={`flex items-center w-full gap-3 px-4 py-2 rounded-lg transition-colors ${view === 'schedule' ? 'bg-cyan-600 text-white' : 'hover:bg-gray-700'} ${isSidebarCollapsed ? 'justify-center' : ''}`} title={isSidebarCollapsed ? 'جدولي الدراسي' : ''}>
                             <Calendar size={20} />{!isSidebarCollapsed && <span>جدولي الدراسي</span>}
                         </button>

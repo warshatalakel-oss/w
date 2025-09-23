@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import { Download, Printer, Loader2, Trash2, UserPlus, ArrowUpCircle, Map as MapIcon } from 'lucide-react';
 import type { User, SchoolSettings, ClassData } from '../../types';
-import WrittenExamScheduleView from './WrittenExamScheduleView';
-import QuestionsAnswersReceiptView from './QuestionsAnswersReceiptView';
-import AbsenceDraftExporter from './AbsenceDraftExporter';
-import ExamBookletsReceipt from './ExamBookletsReceipt';
-import ExaminationRecord from './ExaminationRecord';
+import WrittenExamScheduleView from './WrittenExamScheduleView.tsx';
+import QuestionsAnswersReceiptView from './QuestionsAnswersReceiptView.tsx';
+import AbsenceDraftExporter from './AbsenceDraftExporter.tsx';
+import ExamBookletsReceipt from './ExamBookletsReceipt.tsx';
+import ExaminationRecord from './ExaminationRecord.tsx';
 
 
 declare const jspdf: any;

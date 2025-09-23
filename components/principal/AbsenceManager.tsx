@@ -5,8 +5,8 @@ import * as ReactDOM from 'react-dom/client';
 import type { User, SchoolSettings, ClassData, Student, AbsenceStatus } from '../../types';
 import { db } from '../../lib/firebase';
 import { Calendar, ListChecks, Printer, AlertTriangle, Loader2, PlayCircle, X } from 'lucide-react';
-import MonthlyAbsenceReportPDF from './MonthlyAbsenceReportPDF';
-import AbsenceWarningLetterPDF from './AbsenceWarningLetterPDF';
+import MonthlyAbsenceReportPDF from './MonthlyAbsenceReportPDF.tsx';
+import AbsenceWarningLetterPDF from './AbsenceWarningLetterPDF.tsx';
 
 declare const jspdf: any;
 declare const html2canvas: any;

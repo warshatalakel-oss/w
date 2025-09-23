@@ -3,8 +3,8 @@ import * as ReactDOM from 'react-dom/client';
 import type { SchoolSettings } from '../../types';
 import { Building, PlusCircle, Trash2, Eye, FileDown, Loader2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
-import ExamBookletBeforePage from './ExamBookletBeforePage';
-import ExamBookletAfterPage from './ExamBookletAfterPage';
+import ExamBookletBeforePage from './ExamBookletBeforePage.tsx';
+import ExamBookletAfterPage from './ExamBookletAfterPage.tsx';
 import useLocalStorage from '../../hooks/useLocalStorage';
 
 declare const jspdf: any;

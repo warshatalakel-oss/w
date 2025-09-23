@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import type { SchoolSettings } from '../../types';
 import { BookMarked, Upload, FileDown, Loader2 } from 'lucide-react';
-import ExamCardPDFPage from './ExamCardPDFPage';
+import ExamCardPDFPage from './ExamCardPDFPage.tsx';
 
 declare const XLSX: any;
 declare const jspdf: any;

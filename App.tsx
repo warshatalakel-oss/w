@@ -2,6 +2,9 @@ import React from 'react';
 import useAuth from './hooks/useAuth.ts';
 import Login from './components/auth/Login.tsx';
 import MainApp from './MainApp.tsx';
+import CounselorApp from './components/counselor/CounselorApp.tsx';
+import StudentApp from './hooks/student/StudentApp.tsx';
+import AdminDashboard from './components/admin/AdminDashboard.tsx';
 import { LogIn, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
 
 export default function App(): React.ReactNode {
@@ -38,11 +41,15 @@ export default function App(): React.ReactNode {
     }
 
     switch (currentUser.role) {
+        case 'admin':
+             return <AdminDashboard currentUser={currentUser} users={users} addUser={addUser} updateUser={updateUser} deleteUser={deleteUser} onLogout={logout} />;
         case 'principal':
         case 'teacher':
-        case 'counselor':
-        case 'student':
             return <MainApp currentUser={currentUser} users={users} addUser={addUser} updateUser={updateUser} deleteUser={deleteUser} onLogout={logout} />;
+        case 'counselor':
+            return <CounselorApp currentUser={currentUser} users={users} onLogout={logout} />;
+        case 'student':
+            return <StudentApp currentUser={currentUser} onLogout={logout} />;
         default:
             return (
                 <div className="flex flex-col items-center justify-center h-screen bg-gray-100">

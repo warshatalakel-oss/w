@@ -1,9 +1,10 @@
 
+
 import React, { useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import type { SchoolSettings } from '../../types';
 import { FileDown, Loader2, Settings, TableProperties, ArrowRight } from 'lucide-react';
-import AbsenceDraftPage from './AbsenceDraftPage'; // This will contain the PDF layout
+import AbsenceDraftPage from './AbsenceDraftPage.tsx'; // This will contain the PDF layout
 
 declare const jspdf: any;
 declare const html2canvas: any;
