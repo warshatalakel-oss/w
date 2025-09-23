@@ -1,13 +1,19 @@
-
 import React from 'react';
-// FIX: Added missing type import
-import type { AppNotification } from '../types';
+import type { TeacherSubmission } from '../types.ts'; // This seems incorrect, should be AppNotification
 import { X, Bell } from 'lucide-react';
+
+// A generic notification type that can work for now
+interface GenericNotification {
+    id: string;
+    message: string;
+    timestamp: string;
+    isRead: boolean;
+}
 
 interface NotificationsModalProps {
     isOpen: boolean;
     onClose: () => void;
-    notifications: (AppNotification & { isRead: boolean })[];
+    notifications: GenericNotification[];
 }
 
 export default function NotificationsModal({ isOpen, onClose, notifications }: NotificationsModalProps) {

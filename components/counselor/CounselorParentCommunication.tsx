@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+// FIX: Added missing type imports
 import type { User, SchoolSettings, StudentSubmission, ParentContact, Student } from '../../types.ts';
 import { db } from '../../lib/firebase.ts';
 import { Key, Send, ClipboardList, RefreshCw, Copy, Check, Eye, X, Edit, Trash2, FileDown, Loader2, MessageSquare, Plus, UserPlus, PlayCircle, Users as UsersIcon, Download, Sparkles } from 'lucide-react';

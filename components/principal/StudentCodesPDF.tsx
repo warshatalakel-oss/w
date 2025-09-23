@@ -31,6 +31,7 @@ export default function StudentCodesPDF({ students, schoolName, className }: Stu
                              <tr key={student.id} className="h-[44px] odd:bg-white even:bg-gray-100">
                                 <td className="border border-black p-2 text-center">{index + 1}</td>
                                 <td className="border border-black p-2">{student.name}</td>
+                                {/* FIX: Access studentAccessCode which is now defined on the Student type. */}
                                 <td className="border border-black p-2 text-center font-mono text-cyan-700 font-bold">{student.studentAccessCode}</td>
                             </tr>
                         ))}

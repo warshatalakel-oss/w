@@ -1,4 +1,3 @@
-
 import type { SchoolSettings, Subject } from './types.ts';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -59,11 +58,12 @@ export const DEFAULT_SUBJECTS: Record<string, Subject[]> = {
     'السادس الادبي': generateSubjects(['التربية الاسلامية', 'اللغة العربية', 'اللغة الانكليزية', 'التاريخ', 'الجغرافية', 'الرياضيات', 'الحاسوب', 'الاقتصاد', 'التربية الرياضية', 'التربية الفنية']),
 };
 
-// FIX: Added missing BEHAVIORAL_CRITERIA constant.
+// FIX: Add missing BEHAVIORAL_CRITERIA constant.
 export const BEHAVIORAL_CRITERIA = [
-    { key: 'respect', label: 'الاحترام والتقدير', description: 'يُظهر احترامًا للمعلمين والزملاء وممتلكات المدرسة.' },
-    { key: 'cooperation', label: 'التعاون والمشاركة', description: 'يتعاون مع زملائه ويشارك بفعالية في الأنشطة الصفية.' },
-    { key: 'responsibility', label: 'المسؤولية', description: 'يُكمل واجباته في الوقت المحدد ويحافظ على نظافة المكان.' },
-    { key: 'discipline', label: 'الالتزام والانضباط', description: 'يلتزم بالقوانين المدرسية ويحافظ على الهدوء داخل الصف.' },
-    { key: 'initiative', label: 'المبادرة والإيجابية', description: 'يُبادر بمساعدة الآخرين وينشر روحًا إيجابية.' },
+  { key: 'respect', label: 'الاحترام', description: 'يظهر احترامًا للمعلمين والزملاء.' },
+  { key: 'cooperation', label: 'التعاون', description: 'يتعاون مع الآخرين في الأنشطة الصفية.' },
+  { key: 'responsibility', label: 'المسؤولية', description: 'يتحمل مسؤولية واجباته وممتلكاته.' },
+  { key: 'discipline', label: 'الانضباط', description: 'يلتزم بقوانين المدرسة والنظام داخل الصف.' },
+  { key: 'initiative', label: 'المبادرة', description: 'يبادر في المساعدة وتقديم الأفكار الإيجابية.' },
+  { key: 'integrity', label: 'النزاهة', description: 'يتمتع بالصدق والأمانة في تعاملاته.' },
 ];

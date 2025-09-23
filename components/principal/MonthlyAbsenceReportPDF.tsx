@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 // FIX: Add missing type import
 import type { User, SchoolSettings, ClassData, Student, AbsenceStatus } from '../../types';

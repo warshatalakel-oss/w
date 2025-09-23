@@ -1,6 +1,8 @@
 
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import * as ReactDOM from 'react-dom/client';
+// FIX: Added missing type imports
 import type { User, SchoolSettings, ClassData, StudentSubmission, Announcement, ParentContact, Student } from '../../types';
 import { db } from '../../lib/firebase';
 import { Key, Send, ClipboardList, RefreshCw, Copy, Check, Eye, X, Edit, Trash2, FileDown, Loader2, MessageSquare, Plus, UserPlus, PlayCircle, Users as UsersIcon, Download, Sparkles } from 'lucide-react';
@@ -343,12 +345,11 @@ const ReceivedForms = ({ submissions, principal }: { submissions: StudentSubmiss
                         </header>
                         <main className="flex-1 overflow-y-auto p-4 bg-gray-100">
                             <div className="space-y-4">
-                                {/* FIX: Pass missing studentPhoto and onPhotoUpload props to RegistrationFormPage1 */}
                                 <RegistrationFormPage1 
                                     formData={modalState.mode === 'edit' ? editedFormData : modalState.submission.formData} 
                                     onUpdate={(field, value) => modalState.mode === 'edit' && setEditedFormData(prev => ({ ...prev, [field]: value }))}
                                     isPdfMode={modalState.mode === 'view'}
-                                    studentPhoto={modalState.submission.studentPhoto}
+                                    studentPhoto={modalState.submission.studentPhoto || null}
                                     onPhotoUpload={() => {}}
                                 />
                                 <RegistrationFormPage2 

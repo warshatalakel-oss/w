@@ -91,9 +91,9 @@ export default function useAuth() {
             return true;
         }
     
-        // Teacher/Counselor/Student login
+        // Teacher login
         const user = users.find(u => 
-            (u.role === 'teacher' || u.role === 'counselor' || u.role === 'student') && u.code === identifier
+            (u.role === 'teacher') && u.code === identifier
         );
     
         if (user) {

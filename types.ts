@@ -29,7 +29,7 @@ export interface Subject {
 }
 
 // User and Role types
-export type UserRole = 'admin' | 'principal' | 'teacher' | 'counselor' | 'student';
+export type UserRole = 'admin' | 'principal' | 'teacher';
 
 export interface TeacherAssignment {
     classId: string;
@@ -46,13 +46,7 @@ export interface User {
     schoolLevel?: SchoolLevel;
     principalId?: string;
     disabled?: boolean;
-    classId?: string;
-    section?: string;
-    stage?: string;
     assignments?: TeacherAssignment[];
-    studentAccessCode?: string;
-    photoUrl?: string;
-    studentCodeLimit?: number;
 }
 
 export interface Teacher extends User {
@@ -101,8 +95,6 @@ export interface Student {
     yearsOfFailure?: string;
     motherName?: string;
     motherFatherName?: string;
-    photoUrl?: string;
-    studentAccessCode?: string;
     grades: Record<string, SubjectGrade>;
     teacherGrades?: Record<string, TeacherSubjectGrade>;
 }
@@ -141,138 +133,6 @@ export interface TeacherCalculatedGrade {
 export interface StudentResult {
     status: 'قيد الانتظار' | 'ناجح' | 'مكمل' | 'راسب' | 'مؤهل' | 'مؤهل بقرار' | 'غير مؤهل';
     message: string;
-}
-
-export interface PublishedMonthlyResult {
-    monthKey: string;
-    monthLabel: string;
-    publishedAt: string;
-    grades: Array<{
-        subjectName: string;
-        grade: number | null;
-    }>;
-}
-
-// Communication and Notification types
-export interface AppNotification {
-    id: string;
-    senderId: string;
-    senderName: string;
-    recipientScope: 'all_principals' | 'all_teachers' | 'all_students' | string;
-    message: string;
-    timestamp: string;
-    isRead: boolean;
-}
-
-export interface StudentNotification {
-    id: string;
-    studentId: string;
-    message: string;
-    timestamp: string;
-    isRead: boolean;
-}
-
-export interface MessageAttachment {
-    name: string;
-    url: string;
-    type: 'image' | 'file';
-}
-export interface ChatMessage {
-    id: string;
-    senderId: string;
-    senderName: string;
-    text: string;
-    timestamp: number;
-    attachment?: MessageAttachment;
-}
-export interface Conversation {
-    id: string;
-    principalId: string;
-    studentId: string;
-    studentName: string;
-    teacherId?: string;
-    subjectName?: string;
-    classId?: string;
-    groupName?: string;
-    staffName: string;
-    lastMessageText: string;
-    lastMessageTimestamp: number;
-    unreadByStudent: boolean;
-    unreadByStaff: boolean;
-    isArchived: boolean;
-    chatDisabled: boolean;
-}
-
-// Behavior and Evaluation types
-export const EVALUATION_RATINGS = ['ممتاز', 'جيد جدا', 'متوسط', 'ضعيف', 'ضعيف جدا'] as const;
-export type EvaluationRating = typeof EVALUATION_RATINGS[number];
-
-export interface StudentEvaluation {
-    id: string;
-    studentId: string;
-    principalId: string;
-    classId: string;
-    subjectId: string;
-    subjectName: string;
-    teacherId: string;
-    teacherName: string;
-    rating: EvaluationRating;
-    timestamp: string;
-}
-
-export interface BehaviorDeduction {
-    id: string;
-    principalId: string;
-    studentId: string;
-    classId: string;
-    pointsDeducted: number;
-    reason: string;
-    timestamp: string;
-}
-
-// FIX: Add missing behavioral honor board types.
-export interface BehavioralVote {
-    voterId: string;
-    voterName: string;
-    criteriaKeys: string[];
-}
-
-export interface HonoredStudent {
-    studentId: string;
-    studentName: string;
-    classId: string;
-    section: string;
-    nominationTimestamp: string;
-    votes: Record<string, BehavioralVote>; // Key is voterId
-    studentPhotoUrl?: string;
-}
-
-export interface BehavioralHonorBoard {
-    id: string;
-    principalId: string;
-    stage: string;
-    weekStartDate: string;
-    honoredStudents: Record<string, HonoredStudent>; // Key is studentId
-}
-
-// Forms and Submissions types
-export interface StudentSubmission {
-    id: string;
-    principalId: string;
-    studentName: string;
-    stage: string;
-    formData: Record<string, string>;
-    studentPhoto: string | null;
-    submittedAt: string;
-    status: 'pending' | 'viewed';
-}
-
-export interface ParentContact {
-    id: string;
-    principalId: string;
-    studentName: string;
-    parentPhone: string;
-    stage: string;
 }
 
 export type AbsenceStatus = 'present' | 'absent' | 'excused' | 'runaway';
@@ -344,137 +204,6 @@ export interface YardDutySwapRequest {
     originalSlot: { day: string, locationId: string };
     requestedSlot: { day: string, locationId: string };
     status: 'pending_teacher' | 'pending_principal' | 'approved' | 'rejected';
-}
-
-// Gamification and Homework types
-export interface Award {
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-    minCompletions: number;
-}
-
-export interface HomeworkAttachment {
-    name: string;
-    url: string;
-    type: 'image' | 'file';
-}
-export interface Homework {
-    id: string;
-    principalId: string;
-    teacherId: string;
-    classIds: string[];
-    subjectId: string;
-    subjectName: string;
-    title: string;
-    notes: string;
-    deadline: string;
-    attachments: HomeworkAttachment[];
-    createdAt: string;
-    texts?: string[];
-}
-export interface HomeworkSubmission {
-    id: string;
-    homeworkId: string;
-    studentId: string;
-    studentName: string;
-    classId: string;
-    submittedAt: string;
-    texts?: string[];
-    attachments?: HomeworkAttachment[];
-    status: 'pending' | 'accepted' | 'rejected';
-    rejectionReason?: string;
-    reviewedAt?: string;
-}
-export interface HomeworkProgress {
-    totalCompleted: number;
-    monthlyCompleted: Record<string, {
-        count: number;
-        lastTimestamp: number;
-    }>;
-}
-
-export type PlayerSymbol = 'X' | 'O' | '⭐' | '🌙' | '❤️' | '🔷';
-
-export interface XOGamePlayer {
-    id: string;
-    name: string;
-    symbol: PlayerSymbol;
-    classId?: string;
-    section?: string;
-}
-export interface XOQuestion {
-    id: string;
-    principalId: string;
-    grade: string;
-    subject: string;
-    questionText: string;
-    options: [string, string, string, string];
-    correctOptionIndex: number;
-    createdBy: string;
-    creatorName?: string;
-    creatorSchool?: string;
-    chapter?: string;
-}
-export interface XOGameState {
-    id: string;
-    principalId: string;
-    grade: string;
-    subject: string;
-    status: 'waiting_for_players' | 'in_progress' | 'finished';
-    players: [XOGamePlayer, XOGamePlayer | null];
-    board: Array<PlayerSymbol | null>;
-    xIsNext: boolean;
-    winner: PlayerSymbol | 'draw' | null;
-    scores: Record<PlayerSymbol, number>;
-    currentQuestion: XOQuestion | null;
-    questionForSquare: number | null;
-    questionTimerStart: number | null;
-    chat: ChatMessage[];
-    createdAt: number;
-    updatedAt: number;
-}
-export interface XOChallenge {
-    id: string;
-    challengerId: string;
-    challengerName: string;
-    challengerClass: string;
-    challengerClassId?: string;
-    challengerSection?: string;
-    targetId: string;
-    grade: string;
-    subject: string;
-    status: 'pending' | 'accepted' | 'declined';
-    createdAt: number;
-    gameId?: string;
-}
-export interface XOOverallLeaderboardEntry {
-    studentId: string;
-    studentName: string;
-    totalPoints: number;
-}
-export interface XOGameScore {
-    studentId: string;
-    studentName: string;
-    classId: string;
-    section: string;
-    points: number;
-}
-export interface XOGameSettings {
-    pointsPolicy: 'winner_takes_all' | 'grant_all';
-    startTime: string;
-    endTime: string;
-    questionTimeLimit: number;
-    allowSinglePlayer: boolean;
-}
-
-export interface Announcement {
-    id: string;
-    principalId: string;
-    stage: string;
-    message: string;
-    timestamp: string;
 }
 
 export interface TeacherSubmission {

@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
-import type { User, StudentEvaluation, StudentNotification, Conversation, ScheduleData, PublishedMonthlyResult, BehaviorDeduction, XOChallenge, ClassData, Student, Homework, HomeworkSubmission, HomeworkProgress } from '../../types.ts';
+import type { User, StudentEvaluation, StudentNotification, Conversation, ScheduleData, PublishedMonthlyResult, BehaviorDeduction, XOChallenge, ClassData, Student, Homework, HomeworkSubmission, HomeworkProgress, Teacher } from '../../types.ts';
 import { LogOut, Home, Bell, Shield, BookOpen, Calendar, ClipboardCheck, ShieldBan, Gamepad2, Swords, ChevronsLeft, ChevronsRight, Award, Trophy, ListChecks, BookText } from 'lucide-react';
 import { db, storage } from '../../lib/firebase.ts';
 import StudentDashboard from '../../components/student/StudentDashboard.tsx';

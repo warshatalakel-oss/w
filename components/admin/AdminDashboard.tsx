@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-// FIX: Added missing type import
-import type { User, SchoolLevel, ClassData, Student, AppNotification } from '../../types.ts';
+import type { User, SchoolLevel, ClassData, Student } from '../../types.ts';
 import { Plus, UserCog, LogOut, Copy, Check, Edit, Trash2, Save, X, RefreshCw, SendHorizonal, Users, ChevronDown, ChevronUp, Power, PowerOff } from 'lucide-react';
 import { SCHOOL_LEVELS } from '../../constants.ts';
 import { v4 as uuidv4 } from 'uuid';
@@ -38,11 +37,6 @@ export default function AdminDashboard({ currentUser, users, addUser, updateUser
     const [editedCode, setEditedCode] = useState('');
     const [editedEmail, setEditedEmail] = useState('');
 
-    // State for notifications
-    const [notificationMessage, setNotificationMessage] = useState('');
-    const [notificationRecipient, setNotificationRecipient] = useState<'all_principals' | 'all_teachers'>('all_principals');
-    const [isSending, setIsSending] = useState(false);
-    
     const principals = users.filter(u => u.role === 'principal');
     
     const handleAddPrincipal = (e: React.FormEvent) => {
@@ -96,33 +90,6 @@ export default function AdminDashboard({ currentUser, users, addUser, updateUser
         navigator.clipboard.writeText(code).then(() => {
             setCopiedCode(code);
             setTimeout(() => setCopiedCode(null), 2000);
-        });
-    };
-
-    const handleSendNotification = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!notificationMessage.trim()) {
-            alert('يرجى كتابة نص الإشعار.');
-            return;
-        }
-        setIsSending(true);
-        const newNotif: AppNotification = {
-            id: uuidv4(),
-            senderId: currentUser.id,
-            senderName: 'المسؤول',
-            recipientScope: notificationRecipient,
-            message: notificationMessage.trim(),
-            timestamp: new Date().toISOString(),
-            isRead: false
-        };
-        db.ref(`notifications/${newNotif.id}`).set(newNotif).then(() => {
-            alert('تم إرسال الإشعار بنجاح!');
-            setNotificationMessage('');
-            setIsSending(false);
-        }).catch((error: any) => {
-            alert('فشل إرسال الإشعار. يرجى المحاولة مرة أخرى.');
-            console.error(error);
-            setIsSending(false);
         });
     };
     
@@ -233,41 +200,8 @@ export default function AdminDashboard({ currentUser, users, addUser, updateUser
                         </div>
                     </div>
 
-                    {/* Principals List & Notification Sender */}
-                    <div className="md:col-span-2 space-y-8">
-                        <div className="bg-white p-6 rounded-xl shadow-lg">
-                            <h2 className="text-2xl font-bold text-gray-800 mb-4">إرسال إشعار</h2>
-                            <form onSubmit={handleSendNotification} className="space-y-4">
-                                <div>
-                                    <label htmlFor="notificationMessage" className="block text-md font-medium text-gray-700 mb-2">نص الرسالة</label>
-                                    <textarea
-                                        id="notificationMessage"
-                                        value={notificationMessage}
-                                        onChange={e => setNotificationMessage(e.target.value)}
-                                        rows={4}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cyan-500 focus:border-cyan-500"
-                                        placeholder="اكتب رسالتك هنا..."
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="notificationRecipient" className="block text-md font-medium text-gray-700 mb-2">إرسال إلى</label>
-                                    <select
-                                        id="notificationRecipient"
-                                        value={notificationRecipient}
-                                        onChange={e => setNotificationRecipient(e.target.value as any)}
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cyan-500 focus:border-cyan-500 bg-white"
-                                    >
-                                        <option value="all_principals">جميع المدراء</option>
-                                        <option value="all_teachers">جميع المدرسين</option>
-                                    </select>
-                                </div>
-                                <button type="submit" disabled={isSending} className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition disabled:bg-gray-400">
-                                    <SendHorizonal size={20} />
-                                    <span>{isSending ? 'جاري الإرسال...' : 'إرسال الإشعار'}</span>
-                                </button>
-                            </form>
-                        </div>
+                    {/* Principals List */}
+                    <div className="md:col-span-2">
                         <div className="bg-white p-6 rounded-xl shadow-lg">
                             <h2 className="text-2xl font-bold text-gray-800 mb-4">قائمة مدراء المدارس ({principals.length})</h2>
                             <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
