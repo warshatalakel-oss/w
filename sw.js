@@ -7,39 +7,53 @@ self.addEventListener('fetch', (event) => {
   // Intercept only .ts and .tsx files from the same origin
   if (url.origin === self.origin && (url.pathname.endsWith('.ts') || url.pathname.endsWith('.tsx'))) {
     event.respondWith(
-      fetch(event.request)
-        .then((response) => {
+      (async () => {
+        try {
+          const response = await fetch(event.request);
+
           if (!response.ok) {
+            // Pass through non-200 responses like 404s
             return response;
           }
 
-          return response.text().then((sourceCode) => {
-            // Transpile the code using Babel
-            try {
-              const transpiledCode = Babel.transform(sourceCode, {
-                presets: ["react", "typescript"],
-                filename: url.pathname // Important for sourcemaps and error messages
-              }).code;
-              
-              const headers = new Headers(response.headers);
-              headers.set('Content-Type', 'application/javascript; charset=utf-8');
-              
-              // Return a new Response with the transpiled code and correct headers
-              return new Response(transpiledCode, { headers });
-            } catch (e) {
-                console.error('Babel transformation failed in Service Worker for:', url.pathname, e);
-                // Return an error response if transpilation fails
-                return new Response(`Babel transformation failed in ${url.pathname}:\n${e.message}`, { 
-                  status: 500,
-                  headers: { 'Content-Type': 'text/plain' }
-                });
-            }
+          const sourceCode = await response.text();
+
+          if (!self.Babel) {
+              console.error("Babel is not loaded in Service Worker.");
+              throw new Error("Babel is not loaded in Service Worker.");
+          }
+
+          // **CRITICAL FIX**: Configure preset-react for automatic JSX runtime (React 17+).
+          const transpiledResult = self.Babel.transform(sourceCode, {
+            presets: [
+                ["react", { runtime: "automatic" }],
+                "typescript"
+            ],
+            filename: url.pathname // Important for sourcemaps and error messages
           });
-        })
-        .catch((error) => {
-          console.error('Service Worker fetch error:', error);
-          return new Response(`Service Worker fetch error for ${url.pathname}: ${error}`, { status: 500 });
-        })
+
+          if (!transpiledResult || !transpiledResult.code) {
+              throw new Error(`Babel transformation returned null for ${url.pathname}`);
+          }
+          
+          const headers = new Headers(response.headers);
+          headers.set('Content-Type', 'application/javascript; charset=utf-8');
+          
+          return new Response(transpiledResult.code, { headers });
+
+        } catch (e) {
+          console.error('Service Worker error for', url.pathname, e);
+          const errorMessage = e instanceof Error ? e.message : String(e);
+          // Return a proper error response that the browser can display in the console
+          return new Response(
+            `/*\n [Service Worker Error]\n URL: ${url.pathname}\n Message: ${errorMessage}\n*/`, 
+            {
+              status: 500,
+              headers: { 'Content-Type': 'application/javascript; charset=utf-8' }
+            }
+          );
+        }
+      })()
     );
   }
 });
