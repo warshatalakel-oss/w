@@ -1,7 +1,7 @@
 import React from 'react';
-import useAuth from './hooks/useAuth';
-import Login from './components/auth/Login';
-import MainApp from './components/MainApp';
+import useAuth from './hooks/useAuth.tsx';
+import Login from './components/auth/Login.tsx';
+import MainApp from './components/MainApp.tsx';
 import { LogIn, Loader2, RefreshCw, AlertTriangle } from 'lucide-react';
 
 export default function App(): React.ReactNode {

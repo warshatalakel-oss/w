@@ -1,7 +1,7 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 // FIX: Fix incomplete import statement for types.
-import type { User, ClassData, StudyPlan, ScheduleData, SchedulePeriod, XOQuestion, Teacher, SchoolLevel, ScheduleAssignment } from '../types';
+import type { User, ClassData, StudyPlan, ScheduleData, SchedulePeriod, XOQuestion, Teacher, SchoolLevel, ScheduleAssignment } from '../types.ts';
 import { v4 as uuidv4 } from 'uuid';
 
 const ai = new GoogleGenAI({apiKey: process.env.API_KEY!});

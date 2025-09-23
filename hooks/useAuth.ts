@@ -1,8 +1,8 @@
 
 import { useState, useCallback, useEffect } from 'react';
-import type { User } from '../types';
+import type { User } from '../types.ts';
 import { v4 as uuidv4 } from 'uuid';
-import { db, auth } from '../lib/firebase';
+import { db, auth } from '../lib/firebase.ts';
 
 const PRINCIPAL_USER: User = {
     id: 'principal_al_hamza',
