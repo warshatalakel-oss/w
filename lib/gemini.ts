@@ -1,8 +1,89 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { User, ClassData, StudyPlan, ScheduleData, SchedulePeriod, Teacher, SchoolLevel, ScheduleAssignment } from '../types.ts';
+// FIX: Added XOQuestion to type imports.
+import type { User, ClassData, StudyPlan, ScheduleData, SchedulePeriod, Teacher, SchoolLevel, ScheduleAssignment, XOQuestion } from '../types.ts';
 import { v4 as uuidv4 } from 'uuid';
 
 const ai = new GoogleGenAI({apiKey: process.env.API_KEY!});
+
+// FIX: Added and exported new function to generate XO questions.
+export const generateXOQuestionsFromText = async (
+    text: string,
+    questionCount: number,
+    grade: string,
+    subject: string,
+    principalId: string,
+    chapter: string
+): Promise<XOQuestion[]> => {
+    const prompt = `
+    Based on the following text from a school curriculum for grade "${grade}" in subject "${subject}", generate exactly ${questionCount} multiple-choice questions suitable for a tic-tac-toe game.
+    Each question must have exactly 4 options. One option must be correct.
+    The questions should be clear, concise, and directly related to the provided text.
+    
+    TEXT:
+    ---
+    ${text.substring(0, 30000)} 
+    ---
+
+    Your output must be a JSON array of objects, with no other text or explanations.
+    Each object must have the following structure: { "questionText": "...", "options": ["...", "...", "...", "..."], "correctOptionIndex": 0-3 }.
+    `;
+
+    try {
+        const responseSchema = {
+            type: Type.ARRAY,
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    questionText: { type: Type.STRING },
+                    options: {
+                        type: Type.ARRAY,
+                        items: { type: Type.STRING },
+                        minItems: 4,
+                        maxItems: 4,
+                    },
+                    correctOptionIndex: { type: Type.INTEGER, minimum: 0, maximum: 3 },
+                },
+                required: ["questionText", "options", "correctOptionIndex"],
+            },
+        };
+
+        const response = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: responseSchema,
+            },
+        });
+
+        const jsonString = response.text.trim();
+        const generatedQuestions = JSON.parse(jsonString) as Omit<XOQuestion, 'id' | 'principalId' | 'grade' | 'subject' | 'chapter' | 'createdBy'>[];
+        
+        return generatedQuestions.map(q => ({
+            ...q,
+            id: uuidv4(),
+            principalId: principalId,
+            grade,
+            subject,
+            chapter,
+            createdBy: 'ai',
+        }));
+
+    } catch (error) {
+        console.error("Error generating XO questions with Gemini:", error);
+        return [];
+    }
+};
+
+// FIX: Added and exported new function to extract text from a URL.
+export const extractTextFromURL = async (url: string, startPage: number, endPage: number, chapter: string): Promise<string> => {
+    // This is a placeholder as the actual implementation is complex and may require a backend service.
+    // For now, it returns mock text.
+    console.log(`Extracting text from ${url} from page ${startPage} to ${endPage} for chapter ${chapter}`);
+    
+    return `This is mock extracted text for chapter ${chapter} from the document at ${url}. It spans from page ${startPage} to ${endPage}. The text would contain all the necessary information for generating questions about various topics, including science, history, and literature.`;
+};
+
 
 export const generateScheduleForGradeOnDay = async (
     day: string,

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { initialPrimaryPlan, initialIntermediatePlan, initialPreparatoryPlan } from '../../data/studyPlans';
+import { initialPrimaryPlan, initialIntermediatePlan, initialPreparatoryPlan } from '../../data/studyPlans.ts';
 // Fix: Added missing type import.
-import type { StudyPlan, SchoolLevel } from '../../types';
+import type { StudyPlan, SchoolLevel } from '../../types.ts';
 import { Plus, Save, Trash2 } from 'lucide-react';
 
 interface StudyPlanEditorProps {
@@ -239,4 +239,78 @@ export default function StudyPlanEditor({ schoolLevel, onSave, savedPlans }: Stu
     };
     
     const deleteSubjectFromPlan = (planType: string, grade: string, subjectName: string) => {
-         if (window.confirm(`هل أنت متأكد من حذف مادة "${subjectName}" من الصف ${grade}؟`))
+         if (window.confirm(`هل أنت متأكد من حذف مادة "${subjectName}" من الصف ${grade}؟`)) {
+            setPlans(prevPlans => {
+                const newPlans = { ...prevPlans };
+                const targetPlan = newPlans[planType];
+                if (targetPlan && targetPlan.grades[grade]) {
+                    const newPlan = JSON.parse(JSON.stringify(targetPlan));
+                    delete newPlan.grades[grade].subjects[subjectName];
+                    // Recalculate total
+                    newPlan.grades[grade].total = Object.values(newPlan.grades[grade].subjects).reduce((sum: number, val: any) => sum + (val as number), 0);
+                    newPlans[planType] = newPlan;
+                }
+                return newPlans;
+            });
+         }
+    };
+    
+    const deleteGradeFromPlan = (planType: string, gradeToDelete: string) => {
+        if (window.confirm(`هل أنت متأكد من حذف مرحلة "${gradeToDelete}" بالكامل من الخطة؟`)) {
+            setPlans(prevPlans => {
+                const newPlans = { ...prevPlans };
+                const targetPlan = newPlans[planType];
+                if (targetPlan && targetPlan.grades[gradeToDelete]) {
+                    const newPlan = JSON.parse(JSON.stringify(targetPlan));
+                    delete newPlan.grades[gradeToDelete];
+                    newPlans[planType] = newPlan;
+                }
+                return newPlans;
+            });
+        }
+    };
+
+    return (
+        <div className="space-y-6">
+            {plans.primary && (
+                <EditablePlanTable
+                    title="الخطة الدراسية للمرحلة الابتدائية"
+                    planData={plans.primary}
+                    updatePlan={(grade, subject, count) => updatePlanData('primary', grade, subject, count)}
+                    addSubject={(grade, subject) => addSubjectToPlan('primary', grade, subject)}
+                    deleteSubject={(grade, subject) => deleteSubjectFromPlan('primary', grade, subject)}
+                    deleteGrade={(grade) => deleteGradeFromPlan('primary', grade)}
+                />
+            )}
+            {plans.intermediate && (
+                <EditablePlanTable
+                    title="الخطة الدراسية للمرحلة المتوسطة"
+                    planData={plans.intermediate}
+                    updatePlan={(grade, subject, count) => updatePlanData('intermediate', grade, subject, count)}
+                    addSubject={(grade, subject) => addSubjectToPlan('intermediate', grade, subject)}
+                    deleteSubject={(grade, subject) => deleteSubjectFromPlan('intermediate', grade, subject)}
+                    deleteGrade={(grade) => deleteGradeFromPlan('intermediate', grade)}
+                />
+            )}
+            {plans.preparatory && (
+                <EditablePlanTable
+                    title="الخطة الدراسية للمرحلة الاعدادية"
+                    planData={plans.preparatory}
+                    updatePlan={(grade, subject, count) => updatePlanData('preparatory', grade, subject, count)}
+                    addSubject={(grade, subject) => addSubjectToPlan('preparatory', grade, subject)}
+                    deleteSubject={(grade, subject) => deleteSubjectFromPlan('preparatory', grade, subject)}
+                    deleteGrade={(grade) => deleteGradeFromPlan('preparatory', grade)}
+                />
+            )}
+            <div className="flex justify-center mt-6">
+                <button 
+                    onClick={() => onSave(plans)}
+                    className="flex items-center gap-2 px-8 py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors shadow-md"
+                >
+                    <Save size={20} />
+                    حفظ الخطة الدراسية
+                </button>
+            </div>
+        </div>
+    );
+}

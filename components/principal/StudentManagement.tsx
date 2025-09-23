@@ -201,7 +201,7 @@ const ReceivedForms = ({ submissions, principal }: { submissions: StudentSubmiss
         try {
             await new Promise<void>(resolve => {
                 // FIX: Pass missing studentPhoto and onPhotoUpload props to RegistrationFormPage1
-                root1.render(<RegistrationFormPage1 formData={submission.formData} onUpdate={()=>{}} isPdfMode studentPhoto={submission.studentPhoto} onPhotoUpload={() => {}} />);
+                root1.render(<RegistrationFormPage1 formData={submission.formData} onUpdate={()=>{}} isPdfMode studentPhoto={submission.studentPhoto || null} onPhotoUpload={() => {}} />);
                 root2.render(<RegistrationFormPage2 formData={submission.formData} onUpdate={()=>{}} isPdfMode />);
                 setTimeout(resolve, 500);
             });
@@ -339,7 +339,7 @@ const ReceivedForms = ({ submissions, principal }: { submissions: StudentSubmiss
                             <h3 className="text-xl font-bold">استمارة الطالب: {modalState.submission.studentName}</h3>
                             <div className="flex items-center gap-2">
                                {modalState.mode === 'view' && <button onClick={() => handleEdit(modalState.submission!)} className="p-2 text-yellow-600 hover:bg-yellow-100 rounded-full"><Edit size={20} /></button>}
-                                <button onClick={() => handleDelete(modalState.submission!.id, modalState.submission!.studentPhoto)} className="p-2 text-red-600 hover:bg-red-100 rounded-full"><Trash2 size={20} /></button>
+                                <button onClick={() => handleDelete(modalState.submission!.id, modalState.submission!.studentPhoto || null)} className="p-2 text-red-600 hover:bg-red-100 rounded-full"><Trash2 size={20} /></button>
                                 <button onClick={closeModal} className="p-2 text-gray-600 hover:bg-gray-200 rounded-full"><X /></button>
                             </div>
                         </header>

@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Home, LogOut, ChevronsRight, ChevronsLeft, MessageSquare, Award } from 'lucide-react';
 // FIX: Added missing type imports
-import type { SchoolSettings, ClassData, User as CurrentUser, TeacherSubmission as StudentSubmission, ParentContact } from '../../types.ts';
+import type { SchoolSettings, ClassData, User as CurrentUser, StudentSubmission, ParentContact } from '../../types.ts';
 import { DEFAULT_SCHOOL_SETTINGS } from '../../constants.ts';
 import { db } from '../../lib/firebase.ts';
 import CounselorParentCommunication from './CounselorParentCommunication.tsx';

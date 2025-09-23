@@ -1,4 +1,5 @@
 import React from 'react';
+// FIX: Added missing type import.
 import type { User, SchoolSettings, PublishedMonthlyResult } from '../../types';
 
 interface StudentMonthlyResultCardProps {
@@ -47,6 +48,7 @@ export default function StudentMonthlyResultCard({ student, settings, resultData
                     </div>
                     <div className="text-right">
                         <p><LiftedText>الاسم: {student.name}</LiftedText></p>
+                        {/* FIX: Access stage and section from the User object for students. */}
                         <p><LiftedText>الصف: {student.stage}</LiftedText></p>
                         <p><LiftedText>الشعبة: {student.section}</LiftedText></p>
                     </div>

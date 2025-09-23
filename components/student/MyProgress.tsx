@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+// FIX: Added missing type imports
 import type { User, HomeworkProgress, ClassData, Award } from '../../types';
 import { Trophy, ArrowLeft, Star, Book, Zap } from 'lucide-react';
 
@@ -29,8 +30,9 @@ export default function MyProgress({ currentUser, progress, allClasses, onBack }
 
     const monthlyData = useMemo(() => {
         if (!progress?.monthlyCompleted) return [];
+        // FIX: Cast the entry value to the correct type to allow property access.
         return Object.entries(progress.monthlyCompleted)
-            .map(([month, data]) => ({ month, count: data.count }))
+            .map(([month, data]: [string, { count: number }]) => ({ month, count: data.count }))
             .sort((a,b) => a.month.localeCompare(b.month));
     }, [progress]);
 

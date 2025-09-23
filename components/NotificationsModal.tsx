@@ -1,19 +1,12 @@
 import React from 'react';
-import type { TeacherSubmission } from '../types.ts'; // This seems incorrect, should be AppNotification
+// FIX: Changed incorrect type import to the correct StudentNotification type.
+import type { StudentNotification } from '../types.ts';
 import { X, Bell } from 'lucide-react';
-
-// A generic notification type that can work for now
-interface GenericNotification {
-    id: string;
-    message: string;
-    timestamp: string;
-    isRead: boolean;
-}
 
 interface NotificationsModalProps {
     isOpen: boolean;
     onClose: () => void;
-    notifications: GenericNotification[];
+    notifications: StudentNotification[];
 }
 
 export default function NotificationsModal({ isOpen, onClose, notifications }: NotificationsModalProps) {
@@ -34,7 +27,7 @@ export default function NotificationsModal({ isOpen, onClose, notifications }: N
                 <header className="flex justify-between items-center p-4 border-b">
                     <div className="flex items-center gap-3">
                         <Bell className="text-cyan-600" />
-                        <h2 className="text-xl font-bold text-gray-800">الإشعارات</h2>
+                        <h2 className="text-2xl font-bold text-gray-800">الإشعارات</h2>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-500 hover:bg-gray-200 rounded-full">
                         <X size={24} />

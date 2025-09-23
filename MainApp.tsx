@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { SettingsIcon, BookUser, Home, Printer, BarChart, ClipboardList, Archive, User, LogOut, Eye, ChevronsRight, ChevronsLeft, BookCopy, LayoutGrid, ClipboardCheck, Info, Presentation, Brush, Mail, BookMarked, BookText, FileText, PlayCircle, X, Users, CalendarClock, Bell, ClipboardPaste } from 'lucide-react';
 import type { SchoolSettings, ClassData, User as CurrentUser, Teacher } from './types.ts';
@@ -28,9 +29,10 @@ import PrimaryLogExporter from './components/principal/PrimaryLogExporter.tsx';
 import AbsenceManager from './components/principal/AbsenceManager.tsx';
 import SchoolArchive from './components/principal/SchoolArchive.tsx';
 import ExamControlLog from './components/principal/ExamControlLog.tsx';
+import ParentInvitationExporter from './components/principal/ParentInvitationExporter.tsx';
 
 
-type View = 'home' | 'settings' | 'class_manager' | 'grade_sheet' | 'export_results' | 'statistics' | 'teacher_log_exporter' | 'admin_log_exporter' | 'principal_dashboard' | 'receive_teacher_logs' | 'electronic_logbook' | 'grade_board' | 'oral_exam_lists' | 'promotion_log' | 'exam_halls' | 'cover_editor' | 'exam_cards' | 'exam_control_log' | 'administrative_correspondence' | 'primary_school_log' | 'school_archive' | 'absence_manager';
+type View = 'home' | 'settings' | 'class_manager' | 'grade_sheet' | 'export_results' | 'statistics' | 'teacher_log_exporter' | 'admin_log_exporter' | 'principal_dashboard' | 'receive_teacher_logs' | 'electronic_logbook' | 'grade_board' | 'oral_exam_lists' | 'promotion_log' | 'exam_halls' | 'cover_editor' | 'exam_cards' | 'exam_control_log' | 'administrative_correspondence' | 'primary_school_log' | 'school_archive' | 'absence_manager' | 'parent_invitations';
 
 interface NavItem {
     view: View;
@@ -284,6 +286,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
 
     const correspondenceNavItems: NavItem[] = [
         { view: 'administrative_correspondence', icon: FileText, label: 'مخاطبات ادارية' },
+        { view: 'parent_invitations', icon: Mail, label: 'دعوات أولياء الأمور' },
     ];
 
     const reportNavItems: NavItem[] = [
@@ -369,6 +372,8 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                     );
                 case 'administrative_correspondence':
                     return <AdministrativeCorrespondence />;
+                case 'parent_invitations':
+                    return <ParentInvitationExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'export_results':
                     return <ExportManager classes={principalClasses} settings={effectiveSettings} />;
                 case 'statistics':

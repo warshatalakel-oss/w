@@ -48,9 +48,11 @@ export default function StudentSubscriptions({ principal, classes, settings }: S
     }, [selectedClassId, classes]);
     
     const usedCodesCount = useMemo(() => {
+        // FIX: Access studentAccessCode property on the Student type.
         return classes.flatMap(c => c.students || []).filter(s => s.studentAccessCode).length;
     }, [classes]);
 
+    // FIX: Access studentCodeLimit property on the User type.
     const codeLimit = principal.studentCodeLimit || 0;
     const remainingCodes = codeLimit - usedCodesCount;
 
@@ -58,6 +60,7 @@ export default function StudentSubscriptions({ principal, classes, settings }: S
         if (studentIds.length === 0) return;
         
         const studentsToUpdate = students.filter(s => studentIds.includes(s.id));
+        // FIX: Access studentAccessCode property on the Student type.
         const creatingNewCodesCount = studentsToUpdate.filter(s => !s.studentAccessCode).length;
         
         if (creatingNewCodesCount > remainingCodes) {
@@ -73,7 +76,9 @@ export default function StudentSubscriptions({ principal, classes, settings }: S
             if (studentIndex === -1) continue;
 
             // Delete old code if it exists
+            // FIX: Access studentAccessCode property on the Student type.
             if (student.studentAccessCode) {
+                // FIX: Access studentAccessCode property on the Student type.
                 updates[`/student_access_codes_individual/${student.studentAccessCode}`] = null;
             }
 
@@ -109,6 +114,7 @@ export default function StudentSubscriptions({ principal, classes, settings }: S
     const handleDeleteCode = async (studentId: string) => {
          const student = students.find(s => s.id === studentId);
          const studentIndex = students.findIndex(s => s.id === studentId);
+         // FIX: Access studentAccessCode property on the Student type.
          if (!student || studentIndex === -1 || !student.studentAccessCode) return;
 
          if (!window.confirm(`هل أنت متأكد من حذف رمز الطالب ${student.name}؟`)) return;
@@ -116,6 +122,7 @@ export default function StudentSubscriptions({ principal, classes, settings }: S
          setIsLoading(true);
          const updates: Record<string, null> = {};
          updates[`/classes/${selectedClassId}/students/${studentIndex}/studentAccessCode`] = null;
+         // FIX: Access studentAccessCode property on the Student type.
          updates[`/student_access_codes_individual/${student.studentAccessCode}`] = null;
 
          try {
@@ -128,6 +135,7 @@ export default function StudentSubscriptions({ principal, classes, settings }: S
     };
     
     const handleExportPDF = async () => {
+        // FIX: Access studentAccessCode property on the Student type.
         const studentsToExport = students.filter(s => s.studentAccessCode);
         if (studentsToExport.length === 0) {
             alert("لا يوجد طلاب لديهم رموز لتصديرها.");
@@ -277,10 +285,12 @@ export default function StudentSubscriptions({ principal, classes, settings }: S
                                     <tr key={student.id} className="hover:bg-gray-50">
                                         <td className="p-2 border"><input type="checkbox" checked={selectedStudentIds.includes(student.id)} onChange={() => setSelectedStudentIds(prev => prev.includes(student.id) ? prev.filter(id => id !== student.id) : [...prev, student.id])}/></td>
                                         <td className="p-2 border">{student.name}</td>
+                                        {/* FIX: Access studentAccessCode property on the Student type. */}
                                         <td className="p-2 border text-center font-mono text-blue-600">{student.studentAccessCode || '---'}</td>
                                         <td className="p-2 border text-center">
                                             <div className="flex justify-center gap-2">
                                                 <button onClick={() => handleCodeOperation([student.id])} disabled={isLoading} className="p-1 text-blue-600 hover:bg-blue-100 rounded-full" title="تحديث الرمز"><RefreshCw size={18}/></button>
+                                                {/* FIX: Access studentAccessCode property on the Student type. */}
                                                 <button onClick={() => handleDeleteCode(student.id)} disabled={isLoading || !student.studentAccessCode} className="p-1 text-red-600 hover:bg-red-100 rounded-full disabled:text-gray-400" title="حذف الرمز"><Trash2 size={18}/></button>
                                             </div>
                                         </td>

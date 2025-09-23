@@ -126,7 +126,7 @@ export default function CounselorParentCommunication({ principalId, settings, su
         }
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
             const prompt = `You are an eloquent and professional Iraqi school counselor communicating with students' parents. Your task is to take the user's brief message and brilliantly expand it into a complete, polite, and formal announcement suitable for WhatsApp.
             - Add a professional Arabic opening (e.g., "تحية طيبة إلى أولياء الأمور الكرام") and a suitable closing (e.g., "مع خالص التقدير، الإرشاد التربوي").
             - Elaborate on the message's core point, adding context and emphasizing its importance. For instance, if it's about a meeting, highlight the value of parent-teacher cooperation for the student's success and suggest reasons for the meeting.

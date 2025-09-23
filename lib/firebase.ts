@@ -1,4 +1,5 @@
 
+
 declare const firebase: any;
 
 const firebaseConfig = {

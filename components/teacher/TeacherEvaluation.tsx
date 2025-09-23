@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 // FIX: Added missing type imports
 import type { ClassData, Teacher, Student, Subject, EvaluationRating, StudentEvaluation, StudentNotification } from '../../types';
@@ -39,6 +40,7 @@ export default function TeacherEvaluation({ teacher, classes }: TeacherEvaluatio
 
     const studentsWithCodes = useMemo(() => {
         if (!selectedClass) return [];
+        // FIX: Check for studentAccessCode before allowing evaluation.
         return (selectedClass.students || []).filter(student => student.studentAccessCode);
     }, [selectedClass]);
 

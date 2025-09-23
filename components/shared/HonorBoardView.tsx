@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 // Fix: Added missing type imports
 import type { User, ClassData, BehavioralHonorBoard, HonoredStudent, BehavioralVote } from '../../types.ts';
@@ -155,10 +156,10 @@ export default function HonorBoardView({ currentUser, classes }: HonorBoardViewP
     const [isVoteModalOpen, setIsVoteModalOpen] = useState(false);
     const [votingStage, setVotingStage] = useState<string | null>(null);
     
-    // Fix: Corrected the logic to determine principalId for different user roles.
+    // FIX: Corrected the logic to determine principalId for different user roles.
     const principalId = currentUser.role === 'principal' ? currentUser.id : currentUser.principalId;
     const weekId = getWeekId();
-    // Fix: Corrected role check to include all non-student roles.
+    // FIX: Corrected role check to include all non-student roles.
     const isStaff = currentUser.role !== 'student';
 
     useEffect(() => {

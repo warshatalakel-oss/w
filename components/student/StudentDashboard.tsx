@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useRef } from 'react';
 // FIX: Added missing type imports
 import type { Student, StudentEvaluation, EvaluationRating } from '../../types';
@@ -155,7 +156,9 @@ export default function StudentDashboard({ evaluations, studentData, onPhotoUpda
                                 </div>
                             ) : isUploading ? (
                                 <Loader2 className="animate-spin h-10 w-10 text-gray-500" />
+                            // FIX: Access photoUrl property on the Student type.
                             ) : studentData?.photoUrl ? (
+                                // FIX: Access photoUrl property on the Student type.
                                 <img src={studentData.photoUrl} alt="صورة الطالب" className="w-full h-full object-contain rounded-lg p-2" />
                             ) : (
                                 <div className="text-center text-gray-500">
