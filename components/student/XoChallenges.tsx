@@ -1,5 +1,5 @@
 import React from 'react';
-import type { User, XOChallenge, XOGameState } from '../../types';
+import type { User, XOChallenge, XOGameState, PlayerSymbol } from '../../types';
 import { db } from '../../lib/firebase';
 import { Swords, Check, X } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';

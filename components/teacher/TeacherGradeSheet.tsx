@@ -267,9 +267,9 @@ export default function TeacherGradeSheet({ classData, teacher, settings, isRead
         return <div className="p-4 text-center">لم يتم تعيين مادة لهذا الصف.</div>;
     }
     
+    // FIX: Use `a.submittedAt` instead of non-existent `a.createdAt`
     const lastSubmissionDate = submissions
         .filter(s => s.classId === classData.id && s.subjectId === activeSubject.id)
-        // FIX: Use `a.submittedAt` instead of non-existent `a.createdAt`
         .sort((a,b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
         [0]?.submittedAt;
         

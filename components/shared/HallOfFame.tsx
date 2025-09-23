@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import type { User, ClassData, HomeworkProgress, Student } from '../../types.ts';
+import type { User, ClassData, HomeworkProgress, Student, LeaderboardEntry } from '../../types.ts';
 import { db } from '../../lib/firebase.ts';
 import { Trophy, Crown, Loader2, Star } from 'lucide-react';
 
@@ -8,14 +8,6 @@ interface HallOfFameProps {
     classes: ClassData[];
 }
 
-interface LeaderboardEntry {
-    studentId: string;
-    studentName: string;
-    studentPhotoUrl?: string;
-    classId: string;
-    section: string;
-    score: number;
-}
 
 const RANK_STYLES = [
     { bg: 'bg-yellow-400', text: 'text-yellow-800', icon: <Crown size={24}/>, shadow: 'shadow-yellow-300' },
@@ -101,7 +93,8 @@ export default function HallOfFame({ currentUser, classes }: HallOfFameProps) {
         return <div className="flex justify-center p-8"><Loader2 className="animate-spin h-10 w-10 text-cyan-600"/></div>
     }
 
-    const hasAnyLeaderboardData = Object.values(leaderboard).some(arr => arr.length > 0);
+    // FIX: Cast Object.values(leaderboard) to the correct type to allow property access.
+    const hasAnyLeaderboardData = (Object.values(leaderboard) as LeaderboardEntry[][]).some(arr => arr.length > 0);
 
     return (
         <div className="space-y-8">

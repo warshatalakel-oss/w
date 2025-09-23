@@ -95,8 +95,8 @@ export default function MyHomework({ currentUser, activeHomeworks, submissions, 
         
         {sortedHomeworks.length > 0 ? (
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* FIX: Explicitly type 'hw' to resolve TS inference error. */}
-                {sortedHomeworks.map((hw: Homework) => (
+                {/* FIX: Removed explicit type annotation on 'hw' to resolve TS inference error on key prop. */}
+                {sortedHomeworks.map(hw => (
                     <HomeworkCard
                         key={hw.id}
                         homework={hw}

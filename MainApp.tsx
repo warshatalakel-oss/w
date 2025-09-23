@@ -11,11 +11,11 @@ import Settings from './components/Settings.tsx';
 import ClassManager from './components/ClassManager.tsx';
 import GradeSheet from './components/GradeSheet.tsx';
 import ExportManager from './components/ExportManager.tsx';
-import StatisticsManager from './components/StatisticsManager.tsx';
-import TeacherLogExporter from './components/TeacherLogExporter.tsx';
+// import StatisticsManager from './components/StatisticsManager.tsx'; // Temporarily disabled
+// import TeacherLogExporter from './components/TeacherLogExporter.tsx'; // Temporarily disabled
 import AdminLogExporter from './components/AdminLogExporter.tsx';
 import PrincipalDashboard from './components/principal/PrincipalDashboard.tsx';
-import ReceiveTeacherLog from './components/principal/ReceiveTeacherLog.tsx';
+// import ReceiveTeacherLog from './components/principal/ReceiveTeacherLog.tsx'; // Temporarily disabled
 import TeacherGradeSheet from './components/teacher/TeacherGradeSheet.tsx';
 import ElectronicLogbookGenerator from './components/principal/ElectronicLogbookGenerator.tsx';
 import GradeBoardExporter from './components/principal/GradeBoardExporter.tsx';
@@ -30,7 +30,7 @@ import PrimaryLogExporter from './components/principal/PrimaryLogExporter.tsx';
 import AbsenceManager from './components/principal/AbsenceManager.tsx';
 import SchoolArchive from './components/principal/SchoolArchive.tsx';
 import ExamControlLog from './components/principal/ExamControlLog.tsx';
-import ParentInvitationExporter from './components/principal/ParentInvitationExporter.tsx';
+// import ParentInvitationExporter from './components/principal/ParentInvitationExporter.tsx'; // Temporarily disabled
 
 
 type View = 'home' | 'settings' | 'class_manager' | 'grade_sheet' | 'export_results' | 'statistics' | 'teacher_log_exporter' | 'admin_log_exporter' | 'principal_dashboard' | 'receive_teacher_logs' | 'electronic_logbook' | 'grade_board' | 'oral_exam_lists' | 'promotion_log' | 'exam_halls' | 'cover_editor' | 'exam_cards' | 'exam_control_log' | 'administrative_correspondence' | 'primary_school_log' | 'school_archive' | 'absence_manager' | 'parent_invitations';
@@ -287,13 +287,13 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
 
     const correspondenceNavItems: NavItem[] = [
         { view: 'administrative_correspondence', icon: FileText, label: 'مخاطبات ادارية' },
-        { view: 'parent_invitations', icon: Mail, label: 'دعوات أولياء الأمور' },
+        // { view: 'parent_invitations', icon: Mail, label: 'دعوات أولياء الأمور' }, // Temporarily disabled
     ];
 
     const reportNavItems: NavItem[] = [
         { view: 'export_results', icon: Printer, label: 'النتائج الامتحانية' },
-        { view: 'statistics', icon: BarChart, label: 'التقارير والإحصاءات' },
-        { view: 'teacher_log_exporter', icon: ClipboardList, label: 'سجل المدرس' },
+        // { view: 'statistics', icon: BarChart, label: 'التقارير والإحصاءات' }, // Temporarily disabled
+        // { view: 'teacher_log_exporter', icon: ClipboardList, label: 'سجل المدرس' }, // Temporarily disabled
         { view: 'admin_log_exporter', icon: Archive, label: 'السجل العام' },
         { view: 'primary_school_log', icon: BookText, label: 'درجات الابتدائية' },
     ];
@@ -373,14 +373,14 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                     );
                 case 'administrative_correspondence':
                     return <AdministrativeCorrespondence />;
-                case 'parent_invitations':
-                    return <ParentInvitationExporter classes={principalClasses} settings={effectiveSettings} />;
+                // case 'parent_invitations': // Temporarily disabled
+                //     return <ParentInvitationExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'export_results':
                     return <ExportManager classes={principalClasses} settings={effectiveSettings} />;
-                case 'statistics':
-                    return <StatisticsManager classes={principalClasses} settings={effectiveSettings} />;
-                case 'teacher_log_exporter':
-                    return <TeacherLogExporter classes={principalClasses} settings={effectiveSettings} />;
+                // case 'statistics': // Temporarily disabled
+                //     return <StatisticsManager classes={principalClasses} settings={effectiveSettings} />;
+                // case 'teacher_log_exporter': // Temporarily disabled
+                //     return <TeacherLogExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'admin_log_exporter':
                     return <AdminLogExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'primary_school_log':
@@ -389,8 +389,8 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                     return <PrincipalDashboard principal={currentUser} classes={principalClasses} users={users} addUser={addUser} updateUser={updateUser} deleteUser={deleteUser} />;
                 case 'absence_manager':
                     return <AbsenceManager principal={currentUser} settings={effectiveSettings} classes={principalClasses} />;
-                case 'receive_teacher_logs':
-                    return <ReceiveTeacherLog principal={currentUser} classes={principalClasses} settings={effectiveSettings} />;
+                // case 'receive_teacher_logs': // Temporarily disabled
+                //     return <ReceiveTeacherLog principal={currentUser} classes={principalClasses} settings={effectiveSettings} />;
                 case 'electronic_logbook':
                     return <ElectronicLogbookGenerator classes={principalClasses} settings={effectiveSettings} />;
                 case 'promotion_log':
@@ -425,7 +425,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
         { view: 'school_archive', icon: Archive, label: 'ارشيف المدرسة' },
         { view: 'exam_control_log', icon: BookText, label: 'سجل السيطرة الامتحانية' },
         { view: 'promotion_log', icon: ClipboardList, label: 'سجل الترحيل' },
-        { view: 'receive_teacher_logs', icon: ClipboardPaste, label: 'السجلات المستلمة' },
+        // { view: 'receive_teacher_logs', icon: ClipboardPaste, label: 'السجلات المستلمة' }, // Temporarily disabled
     ];
     
     const showAboutButton = (isPrincipal && (activeView === 'home' || activeView === 'class_manager')) || 

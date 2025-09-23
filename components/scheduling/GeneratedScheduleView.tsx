@@ -255,7 +255,8 @@ export default function GeneratedScheduleView({ scheduleData, onUpdateSchedule, 
     };
     
     const handleExportPdf = async () => {
-        const allVisibleClasses: ClassData[] = Object.values(stages).flat();
+        // FIX: Explicitly cast Object.values(...).flat() to the correct type to resolve TS error.
+        const allVisibleClasses: ClassData[] = (Object.values(stages) as ClassData[][]).flat();
         if (allVisibleClasses.length === 0) {
             alert("لا توجد شعب متاحة للتصدير.");
             return;
