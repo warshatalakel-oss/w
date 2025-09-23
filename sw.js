@@ -1,5 +1,5 @@
 // Import Babel standalone script. This will be available as `Babel` in the global scope.
-importScripts("https://cdnjs.cloudflare.com/ajax/libs/@babel/standalone/7.24.7/babel.min.js");
+importScripts("https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.7/babel.min.js");
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
@@ -23,7 +23,7 @@ self.addEventListener('fetch', (event) => {
               throw new Error("Babel is not loaded in Service Worker.");
           }
 
-          // **CRITICAL FIX**: Configure preset-react for automatic JSX runtime (React 17+).
+          // Configure preset-react for automatic JSX runtime (React 17+).
           const transpiledResult = self.Babel.transform(sourceCode, {
             presets: [
                 ["react", { runtime: "automatic" }],
