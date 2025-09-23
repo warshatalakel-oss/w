@@ -200,4 +200,78 @@ export default function PrincipalDashboard({ principal, classes, users, addUser,
                                 required
                             />
                         </div>
-                        <button type="submit" className="w-full flex justify-center items-center gap-2 px-4 py-2 bg-cyan-600 text-white
+                        <button type="submit" className="w-full flex justify-center items-center gap-2 px-4 py-2 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700">
+                            <Plus size={20} />
+                            <span>إضافة</span>
+                        </button>
+                    </form>
+                    <div className="mt-6">
+                        <button 
+                            onClick={handleExportCodes}
+                            disabled={isExportingCodes}
+                            className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition disabled:bg-gray-400"
+                        >
+                            {isExportingCodes ? <Loader2 className="animate-spin" /> : <Download size={20} />}
+                            {isExportingCodes ? "جاري التصدير..." : "تصدير أرقام الدخول"}
+                        </button>
+                    </div>
+                </div>
+
+                <div className="lg:col-span-2">
+                    <h3 className="text-xl font-bold text-gray-700 mb-4">قائمة المدرسين ({teachers.length})</h3>
+                    <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                        {teachers.length > 0 ? teachers.map(t => (
+                            <div key={t.id} className="p-4 bg-gray-50 rounded-lg border flex justify-between items-center">
+                                <div>
+                                    <p className="font-semibold text-lg">{t.name}</p>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <code className="bg-gray-200 text-gray-800 font-mono px-2 py-0.5 rounded text-sm">{t.code}</code>
+                                        <button onClick={() => copyToClipboard(t.code)} className="p-1 text-gray-500 hover:text-cyan-600">
+                                            {copiedCode === t.code ? <Check size={16} className="text-green-500" /> : <Copy size={16} />}
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <button onClick={() => handleEditAssignments(t)} className="p-2 text-white bg-yellow-500 rounded-md hover:bg-yellow-600" title="تعيين مواد"><Shield size={18}/></button>
+                                    <button onClick={() => deleteUser(t.id)} className="p-2 text-white bg-red-500 rounded-md hover:bg-red-600" title="حذف"><Trash2 size={18}/></button>
+                                </div>
+                            </div>
+                        )) : <p className="text-center text-gray-500 py-8">لم يتم إضافة أي مدرس بعد.</p>}
+                    </div>
+                </div>
+            </div>
+
+            {editingTeacher && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+                    <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl h-[80vh] flex flex-col">
+                        <h3 className="text-xl font-bold mb-4">تعيين مواد للمدرس: {editingTeacher.name}</h3>
+                        <div className="flex-1 overflow-y-auto space-y-4 pr-2">
+                            {sortedClassesForModal.map(cls => (
+                                <div key={cls.id} className="p-3 bg-gray-50 rounded-lg border">
+                                    <h4 className="font-semibold text-lg">{cls.stage} - {cls.section}</h4>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
+                                        {cls.subjects.map(subj => (
+                                            <label key={subj.id} className="flex items-center gap-2 p-2 rounded hover:bg-gray-200">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={assignments.some(a => a.classId === cls.id && a.subjectId === subj.id)}
+                                                    onChange={e => handleAssignmentChange(cls.id, subj.id, e.target.checked)}
+                                                    className="h-4 w-4 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
+                                                />
+                                                <span>{subj.name}</span>
+                                            </label>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="mt-6 flex justify-end gap-3 pt-4 border-t">
+                            <button onClick={() => setEditingTeacher(null)} className="px-4 py-2 bg-gray-200 rounded-md flex items-center gap-2"><X size={18} /> إلغاء</button>
+                            <button onClick={handleSaveAssignments} className="px-4 py-2 bg-green-600 text-white rounded-md flex items-center gap-2"><Save size={18} /> حفظ</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

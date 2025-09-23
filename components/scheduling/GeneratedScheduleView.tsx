@@ -255,7 +255,7 @@ export default function GeneratedScheduleView({ scheduleData, onUpdateSchedule, 
     };
     
     const handleExportPdf = async () => {
-        const allVisibleClasses = Object.values(stages).flat();
+        const allVisibleClasses: ClassData[] = Object.values(stages).flat();
         if (allVisibleClasses.length === 0) {
             alert("لا توجد شعب متاحة للتصدير.");
             return;

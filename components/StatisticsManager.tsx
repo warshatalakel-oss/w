@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useRef } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import type { ClassData, SchoolSettings, Student, CalculatedGrade, StudentResult } from '../types';
-import { GRADE_LEVELS } from '../constants';
-import { calculateStudentResult } from '../lib/gradeCalculator';
+import type { ClassData, SchoolSettings, Student, CalculatedGrade, StudentResult } from '../types.ts';
+import { GRADE_LEVELS } from '../constants.ts';
+import { calculateStudentResult } from '../lib/gradeCalculator.ts';
 import { Loader2, FileDown } from 'lucide-react';
-import OverallPercentagesManager from './statistics/OverallPercentagesManager';
+import OverallPercentagesManager from './statistics/OverallPercentagesManager.tsx';
 
 declare const jspdf: any;
 declare const html2canvas: any;

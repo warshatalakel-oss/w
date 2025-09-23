@@ -22,7 +22,7 @@ const getWeekId = (date = new Date()) => {
 };
 
 const calculateStudentScore = (student: HonoredStudent): number => {
-    // Fix: Cast the result of Object.values to the correct type to allow reduce to work.
+    // FIX: Cast the result of Object.values to the correct type to allow reduce to work.
     return (Object.values(student.votes || {}) as BehavioralVote[]).reduce((total, vote) => total + vote.criteriaKeys.length, 0);
 };
 
