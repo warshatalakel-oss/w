@@ -1,43 +1,56 @@
+// Import Babel standalone script. This will be available as `Babel` in the global scope.
+importScripts("https://unpkg.com/@babel/standalone@7/babel.min.js");
 
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
 
-  // Check if the request is for a .ts or .tsx file
-  if (url.pathname.endsWith('.ts') || url.pathname.endsWith('.tsx')) {
+  // Intercept only .ts and .tsx files from the same origin
+  if (url.origin === self.origin && (url.pathname.endsWith('.ts') || url.pathname.endsWith('.tsx'))) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          // If the fetch fails, just return the failed response
           if (!response.ok) {
             return response;
           }
 
-          // If successful, read the response body as text
-          return response.text().then((text) => {
-            // Create new headers and set the correct Content-Type
-            const headers = new Headers(response.headers);
-            headers.set('Content-Type', 'application/javascript; charset=utf-8');
-            
-            // Return a new Response with the original text but the corrected headers
-            return new Response(text, { headers });
+          return response.text().then((sourceCode) => {
+            // Transpile the code using Babel
+            try {
+              const transpiledCode = Babel.transform(sourceCode, {
+                presets: ["react", "typescript"],
+                filename: url.pathname // Important for sourcemaps and error messages
+              }).code;
+              
+              const headers = new Headers(response.headers);
+              headers.set('Content-Type', 'application/javascript; charset=utf-8');
+              
+              // Return a new Response with the transpiled code and correct headers
+              return new Response(transpiledCode, { headers });
+            } catch (e) {
+                console.error('Babel transformation failed in Service Worker for:', url.pathname, e);
+                // Return an error response if transpilation fails
+                return new Response(`Babel transformation failed in ${url.pathname}:\n${e.message}`, { 
+                  status: 500,
+                  headers: { 'Content-Type': 'text/plain' }
+                });
+            }
           });
         })
         .catch((error) => {
-          // Handle network errors
           console.error('Service Worker fetch error:', error);
-          return new Response(`Service Worker fetch error: ${error}`, { status: 500 });
+          return new Response(`Service Worker fetch error for ${url.pathname}: ${error}`, { status: 500 });
         })
     );
   }
 });
 
-// Basic service worker lifecycle
+// Service worker lifecycle events
 self.addEventListener('install', event => {
-  // Skips the waiting phase to activate the new service worker immediately.
+  // Activate new service worker as soon as it's installed
   event.waitUntil(self.skipWaiting());
 });
 
 self.addEventListener('activate', event => {
-  // Takes control of uncontrolled clients (tabs) immediately.
+  // Take control of all clients as soon as the service worker is activated
   event.waitUntil(self.clients.claim());
 });
