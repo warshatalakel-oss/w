@@ -1,7 +1,7 @@
 
 
 // FIX: Added missing type import.
-import type { StudyPlan } from '../types.ts';
+import type { StudyPlan } from '../types';
 
 export const initialPrimaryPlan: StudyPlan = {
   grades: {

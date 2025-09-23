@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useMemo } from 'react';
 import type { User, StudentEvaluation, StudentNotification, Conversation, ScheduleData, PublishedMonthlyResult, BehaviorDeduction, XOChallenge, ClassData, Student, Homework, HomeworkSubmission, HomeworkProgress } from '../../types';
 import { LogOut, Home, Bell, Shield, BookOpen, Calendar, ClipboardCheck, ShieldBan, Gamepad2, Swords, ChevronsLeft, ChevronsRight, Award, Trophy, ListChecks } from 'lucide-react';
@@ -12,9 +13,9 @@ import StudentMonthlyResults from './StudentMonthlyResults';
 import StudentBehaviorView from './StudentBehaviorView';
 import XoLeaderboard from './XoLeaderboard';
 import XoChallenges from './XoChallenges';
-import HonorBoardView from '../shared/HonorBoardView';
+import HonorBoardView from '../../components/shared/HonorBoardView';
 import MyHomework from './MyHomework';
-import HallOfFame from '../shared/HallOfFame';
+import HallOfFame from '../../components/shared/HallOfFame';
 import MyProgress from './MyProgress';
 import HomeworkSubmissionView from './HomeworkSubmissionView';
 
