@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import type { ClassData, SchoolSettings, Student, SubjectGrade, CalculatedGrade } from '../types.ts';

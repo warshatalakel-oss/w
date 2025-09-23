@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade, SubjectGrade } from '../types.ts';
+import { numberToArabicWords } from '../lib/numberToWords.ts';
 
 interface StudentReportCardProps {
     student: Student;

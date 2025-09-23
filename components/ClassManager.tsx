@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import type { ClassData, Student, User, TeacherAssignment, Subject } from '../types.ts';
 import { GRADE_LEVELS, DEFAULT_SUBJECTS } from '../constants.ts';
@@ -87,8 +86,8 @@ export default function ClassManager({ classes, onSelectClass, currentUser, teac
             stage: editingClass.stage,
             section: editingClass.section,
             subjects: editingClass.subjects || [],
-            ministerialDecisionPoints: isMinisterial ? (editingClass.ministerialDecisionPoints ?? 5) : null,
-            ministerialSupplementarySubjects: isMinisterial ? (editingClass.ministerialSupplementarySubjects ?? 3) : null,
+            ministerialDecisionPoints: isMinisterial ? (editingClass.ministerialDecisionPoints ?? 5) : undefined,
+            ministerialSupplementarySubjects: isMinisterial ? (editingClass.ministerialSupplementarySubjects ?? 3) : undefined,
         };
 
 

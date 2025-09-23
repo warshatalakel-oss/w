@@ -30,7 +30,7 @@ export default function XoChallenges({ currentUser, challenges, onGameStart }: X
             board: Array(9).fill(null),
             xIsNext: true,
             winner: null,
-            // Fix: Initialize XOGameState.scores with all possible PlayerSymbol keys to satisfy the Record<PlayerSymbol, number> type.
+            // FIX: Initialize XOGameState.scores with all possible PlayerSymbol keys to satisfy the Record<PlayerSymbol, number> type.
             scores: { 'X': 0, 'O': 0, '⭐': 0, '🌙': 0, '❤️': 0, '🔷': 0 },
             currentQuestion: null,
             questionForSquare: null,
