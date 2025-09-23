@@ -111,7 +111,7 @@ const GradeInput: React.FC<{
     );
 };
 
-export default function TeacherGradeSheet({ classData, teacher, settings, isReadOnly = false, subjectId: readOnlySubjectId }: TeacherGradeSheetProps): React.ReactNode {
+export default function TeacherGradeSheet({ classData, teacher, settings, isReadOnly = false, subjectId: readOnlySubjectId }: TeacherGradeSheetProps) {
     const [submissions, setSubmissions] = useState<TeacherSubmission[]>([]);
     const [localGrades, setLocalGrades] = useState<Record<string, TeacherSubjectGrade>>({});
 
@@ -269,6 +269,7 @@ export default function TeacherGradeSheet({ classData, teacher, settings, isRead
     
     const lastSubmissionDate = submissions
         .filter(s => s.classId === classData.id && s.subjectId === activeSubject.id)
+        // FIX: Use `a.submittedAt` instead of non-existent `a.createdAt`
         .sort((a,b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
         [0]?.submittedAt;
         

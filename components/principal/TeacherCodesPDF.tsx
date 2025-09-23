@@ -1,5 +1,5 @@
 import React from 'react';
-import type { User } from '../../types';
+import type { User } from '../../types.ts';
 
 interface TeacherCodesPDFProps {
     teachers: User[];

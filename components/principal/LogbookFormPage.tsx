@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import type { SchoolSettings } from '../../types';
+import type { SchoolSettings } from '../../types.ts';
 
 interface LogbookStudent {
     id: string;
