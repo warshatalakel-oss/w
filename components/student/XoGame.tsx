@@ -190,7 +190,8 @@ export default function XoGame({ currentUser, gameId, onExit, forceSubject }: Xo
                     id: 'local', principalId: schoolIdentifier, grade: grade, subject: subject,
                     status: 'in_progress',
                     players: [{ id: currentUser.id, name: currentUser.name, symbol: 'X', classId: currentUser.classId, section: currentUser.section }, { id: 'cpu', name: 'الحاسوب', symbol: 'O' }],
-                    board: Array(9).fill(null), xIsNext: true, winner: null, // Fix: Initialize XOGameState.scores with all possible PlayerSymbol keys to satisfy the Record<PlayerSymbol, number> type.
+                    board: Array(9).fill(null), xIsNext: true, winner: null,
+                    // FIX: Initialize XOGameState.scores with all possible PlayerSymbol keys to satisfy the Record<PlayerSymbol, number> type.
                     scores: { 'X': 0, 'O': 0, '⭐': 0, '🌙': 0, '❤️': 0, '🔷': 0 },
                     currentQuestion: null, questionForSquare: null, questionTimerStart: null, chat: [], createdAt: Date.now(), updatedAt: Date.now()
                 };
@@ -309,7 +310,7 @@ export default function XoGame({ currentUser, gameId, onExit, forceSubject }: Xo
                     recordGameResult(winner, loser);
                 });
         }
-    }, [gameState, isSinglePlayer, gameId]);
+    }, [gameState, isSinglePlayer, gameId, recordGameResult]);
 
     const handleSquareClick = async (i: number) => {
         if (!activeGameState || activeGameState.winner || activeGameState.board[i] || activeGameState.currentQuestion) return;
@@ -467,7 +468,6 @@ export default function XoGame({ currentUser, gameId, onExit, forceSubject }: Xo
                 </div>
                 <p className="text-2xl font-semibold mb-4">{status}</p>
                 <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
-                    {/* FIX: Removed explicit type annotation from map callback to fix JSX props type error. */}
                     {board.map((square, i) => (<Square key={i} value={square} onClick={() => handleSquareClick(i)} index={i} winner={winner} isDraw={isDraw} />))}
                 </div>
                 {(winner || isDraw) && activeGameState.status !== 'finished' && <button onClick={resetGame} className="flex items-center gap-2 px-6 py-3 bg-indigo-600 rounded-lg hover:bg-indigo-700"><RefreshCw/>لعبة جديدة</button>}

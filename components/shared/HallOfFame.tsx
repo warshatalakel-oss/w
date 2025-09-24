@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+// FIX: Added missing type import.
 import type { User, ClassData, HomeworkProgress, Student, LeaderboardEntry } from '../../types.ts';
 import { db } from '../../lib/firebase.ts';
 import { Trophy, Crown, Loader2, Star } from 'lucide-react';

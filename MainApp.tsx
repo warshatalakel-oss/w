@@ -1,7 +1,8 @@
 
 
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { SettingsIcon, BookUser, Home, Printer, BarChart, ClipboardList, Archive, User, LogOut, Eye, ChevronsRight, ChevronsLeft, BookCopy, LayoutGrid, ClipboardCheck, Info, Presentation, Brush, Mail, BookMarked, BookText, FileText, PlayCircle, X, Users, CalendarClock, Bell, ClipboardPaste } from 'lucide-react';
+import { Settings as SettingsIcon, BookUser, Home, Printer, BarChart, ClipboardList, Archive, User, LogOut, Eye, ChevronsRight, ChevronsLeft, BookCopy, LayoutGrid, ClipboardCheck, Info, Presentation, Brush, Mail, BookMarked, BookText, FileText, PlayCircle, X, Users, CalendarClock, Bell, ClipboardPaste } from 'lucide-react';
 import type { SchoolSettings, ClassData, User as CurrentUser, Teacher } from './types.ts';
 import { DEFAULT_SCHOOL_SETTINGS } from './constants.ts';
 import { db } from './lib/firebase.ts';
@@ -9,18 +10,18 @@ import { v4 as uuidv4 } from 'uuid';
 
 import Settings from './components/Settings.tsx';
 import ClassManager from './components/ClassManager.tsx';
-import GradeSheet from './components/GradeSheet.tsx';
-import ExportManager from './components/ExportManager.tsx';
+// import GradeSheet from './components/GradeSheet.tsx'; // Temporarily disabled due to missing gradeCalculator.ts
+// import ExportManager from './components/ExportManager.tsx'; // Temporarily disabled due to missing gradeCalculator.ts
 // import StatisticsManager from './components/StatisticsManager.tsx'; // Temporarily disabled
 // import TeacherLogExporter from './components/TeacherLogExporter.tsx'; // Temporarily disabled
-import AdminLogExporter from './components/AdminLogExporter.tsx';
+// import AdminLogExporter from './components/AdminLogExporter.tsx'; // Temporarily disabled due to missing gradeCalculator.ts
 import PrincipalDashboard from './components/principal/PrincipalDashboard.tsx';
 // import ReceiveTeacherLog from './components/principal/ReceiveTeacherLog.tsx'; // Temporarily disabled
 import TeacherGradeSheet from './components/teacher/TeacherGradeSheet.tsx';
-import ElectronicLogbookGenerator from './components/principal/ElectronicLogbookGenerator.tsx';
+// import ElectronicLogbookGenerator from './components/principal/ElectronicLogbookGenerator.tsx'; // Temporarily disabled due to missing LogbookFormPage
 import GradeBoardExporter from './components/principal/GradeBoardExporter.tsx';
 import OralExamListsExporter from './components/principal/OralExamListsExporter.tsx';
-import PromotionLog from './components/principal/PromotionLog.tsx';
+// import PromotionLog from './components/principal/PromotionLog.tsx'; // Temporarily disabled, component missing
 import AboutModal from './components/AboutModal.tsx';
 import ExamHallsManager from './components/principal/ExamHallsManager.tsx';
 import CoverEditor from './components/principal/CoverEditor.tsx';
@@ -73,6 +74,14 @@ const NavButton: React.FC<NavButtonProps> = ({ item, isCollapsed, onClick, isAct
             <span className="ml-auto bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full">{item.badgeCount}</span>
         ) : null}
     </button>
+);
+
+const UnderMaintenance = ({ featureName }: { featureName: string }) => (
+    <div className="text-center p-8 bg-white rounded-lg shadow-lg flex flex-col items-center justify-center h-full">
+        <SettingsIcon className="w-16 h-16 text-yellow-500 mb-4 animate-spin" />
+        <h2 className="text-2xl font-bold text-gray-800">ميزة "{featureName}" قيد الصيانة</h2>
+        <p className="mt-2 text-gray-600 max-w-md">نعمل حالياً على إصلاح هذه الميزة وستعود للعمل قريباً. شكراً لتفهمكم وصبركم.</p>
+    </div>
 );
 
 
@@ -291,10 +300,10 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
     ];
 
     const reportNavItems: NavItem[] = [
-        { view: 'export_results', icon: Printer, label: 'النتائج الامتحانية' },
+        // { view: 'export_results', icon: Printer, label: 'النتائج الامتحانية' }, // Temporarily disabled
         // { view: 'statistics', icon: BarChart, label: 'التقارير والإحصاءات' }, // Temporarily disabled
         // { view: 'teacher_log_exporter', icon: ClipboardList, label: 'سجل المدرس' }, // Temporarily disabled
-        { view: 'admin_log_exporter', icon: Archive, label: 'السجل العام' },
+        // { view: 'admin_log_exporter', icon: Archive, label: 'السجل العام' }, // Temporarily disabled
         { view: 'primary_school_log', icon: BookText, label: 'درجات الابتدائية' },
     ];
     
@@ -362,27 +371,19 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'settings':
                     return <Settings currentSettings={effectiveSettings} onSave={handleSaveSettings} currentUser={currentUser} updateUser={updateUser} />;
                 case 'grade_sheet':
-                    if (selectedClass) {
-                        return <GradeSheet classData={selectedClass} settings={effectiveSettings} />;
-                    }
-                    return (
-                        <div className="text-center p-8 bg-white rounded-lg shadow">
-                            <h2 className="text-2xl font-bold">عرض سجل الدرجات</h2>
-                            <p className="mt-2 text-gray-600">من فضلك، اختر شعبة من قائمة <span className="font-bold text-cyan-600">"إدارة الشعب"</span> لعرض أو تعديل سجل الدرجات الخاص بها.</p>
-                        </div>
-                    );
+                    return <UnderMaintenance featureName="سجل الدرجات" />;
                 case 'administrative_correspondence':
                     return <AdministrativeCorrespondence />;
                 // case 'parent_invitations': // Temporarily disabled
                 //     return <ParentInvitationExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'export_results':
-                    return <ExportManager classes={principalClasses} settings={effectiveSettings} />;
+                     return <UnderMaintenance featureName="تصدير النتائج" />;
                 // case 'statistics': // Temporarily disabled
                 //     return <StatisticsManager classes={principalClasses} settings={effectiveSettings} />;
                 // case 'teacher_log_exporter': // Temporarily disabled
                 //     return <TeacherLogExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'admin_log_exporter':
-                    return <AdminLogExporter classes={principalClasses} settings={effectiveSettings} />;
+                    return <UnderMaintenance featureName="السجل العام" />;
                 case 'primary_school_log':
                     return <PrimaryLogExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'principal_dashboard':
@@ -392,9 +393,9 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 // case 'receive_teacher_logs': // Temporarily disabled
                 //     return <ReceiveTeacherLog principal={currentUser} classes={principalClasses} settings={effectiveSettings} />;
                 case 'electronic_logbook':
-                    return <ElectronicLogbookGenerator classes={principalClasses} settings={effectiveSettings} />;
+                    return <UnderMaintenance featureName="الدفتر الالكتروني" />;
                 case 'promotion_log':
-                    return <PromotionLog classes={principalClasses} settings={effectiveSettings} />;
+                    return <UnderMaintenance featureName="سجل الترحيل" />;
                 case 'grade_board':
                     return <GradeBoardExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'oral_exam_lists':
@@ -421,10 +422,10 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
         { view: 'home', icon: Home, label: 'الرئيسية / الشعب' },
         { view: 'principal_dashboard', icon: User, label: 'إدارة المدرسين' },
         { view: 'absence_manager', icon: CalendarClock, label: 'إدارة الغيابات' },
-        { view: 'electronic_logbook', icon: BookCopy, label: 'الدفتر الالكتروني' },
+        // { view: 'electronic_logbook', icon: BookCopy, label: 'الدفتر الالكتروني' }, // Temporarily disabled
         { view: 'school_archive', icon: Archive, label: 'ارشيف المدرسة' },
         { view: 'exam_control_log', icon: BookText, label: 'سجل السيطرة الامتحانية' },
-        { view: 'promotion_log', icon: ClipboardList, label: 'سجل الترحيل' },
+        // { view: 'promotion_log', icon: ClipboardList, label: 'سجل الترحيل' }, // Temporarily disabled
         // { view: 'receive_teacher_logs', icon: ClipboardPaste, label: 'السجلات المستلمة' }, // Temporarily disabled
     ];
     

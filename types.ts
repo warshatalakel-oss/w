@@ -468,3 +468,11 @@ export interface Award {
     icon: string;
     minCompletions: number;
 }
+export interface LeaderboardEntry {
+    studentId: string;
+    classId: string;
+    score: number;
+    studentName: string;
+    studentPhotoUrl?: string;
+    section: string;
+}

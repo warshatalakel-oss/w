@@ -214,7 +214,7 @@ export default function TeacherGradeSheet({ classData, teacher, settings, isRead
             }
         });
         return studentResults;
-    }, [sortedStudents, localGrades, isPrimary5_6, calculateGrades, calculateGradesForPrimary]);
+    }, [sortedStudents, localGrades, isPrimary5_6]);
 
     const handleGradeChange = useCallback((studentId: string, field: keyof TeacherSubjectGrade, value: number | null) => {
         setLocalGrades(prev => ({
@@ -267,7 +267,7 @@ export default function TeacherGradeSheet({ classData, teacher, settings, isRead
         return <div className="p-4 text-center">لم يتم تعيين مادة لهذا الصف.</div>;
     }
     
-    // FIX: Use `a.submittedAt` instead of non-existent `a.createdAt`
+    // FIX: Use `a.submittedAt` instead of non-existent `createdAt`
     const lastSubmissionDate = submissions
         .filter(s => s.classId === classData.id && s.subjectId === activeSubject.id)
         .sort((a,b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
