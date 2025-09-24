@@ -15,7 +15,8 @@ interface SquareProps {
   isDraw: boolean;
 }
 
-const Square = ({ value, onClick, index, winner, isDraw }: SquareProps) => (
+// FIX: Explicitly type the component with React.FC to ensure TypeScript correctly handles the special `key` prop in JSX.
+const Square: React.FC<SquareProps> = ({ value, onClick, index, winner, isDraw }) => (
   <button 
     className="w-24 h-24 sm:w-32 sm:h-32 bg-gray-800 rounded-lg flex items-center justify-center text-6xl font-bold transition-transform transform hover:scale-105 relative group disabled:cursor-not-allowed"
     onClick={onClick}

@@ -10,7 +10,15 @@ interface MyHomeworkProps {
     onViewProgress: () => void;
 }
 
-const HomeworkCard = ({ homework, submission, onViewHomework }: { homework: Homework; submission?: HomeworkSubmission; onViewHomework: (h: Homework) => void }) => {
+// FIX: Define a dedicated props interface and use React.FC to correctly type the component.
+// This ensures TypeScript recognizes it as a React component and handles the special `key` prop correctly.
+interface HomeworkCardProps {
+    homework: Homework;
+    submission?: HomeworkSubmission;
+    onViewHomework: (h: Homework) => void;
+}
+
+const HomeworkCard: React.FC<HomeworkCardProps> = ({ homework, submission, onViewHomework }) => {
     const deadline = new Date(homework.deadline);
     const now = new Date();
     const diffTime = deadline.getTime() - now.getTime();
