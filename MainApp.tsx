@@ -17,16 +17,16 @@ import PrincipalDashboard from './components/principal/PrincipalDashboard.tsx';
 import TeacherGradeSheet from './components/teacher/TeacherGradeSheet.tsx';
 // import ElectronicLogbookGenerator from './components/principal/ElectronicLogbookGenerator.tsx'; // Temporarily disabled due to missing LogbookFormPage
 // import GradeBoardExporter from './components/principal/GradeBoardExporter.tsx'; // Temporarily disabled due to module loading errors
-import OralExamListsExporter from './components/principal/OralExamListsExporter.tsx';
+// import OralExamListsExporter from './components/principal/OralExamListsExporter.tsx';
 // import PromotionLog from './components/principal/PromotionLog.tsx'; // Temporarily disabled, component missing
 import AboutModal from './components/AboutModal.tsx';
-import ExamHallsManager from './components/principal/ExamHallsManager.tsx';
-import CoverEditor from './components/principal/CoverEditor.tsx';
-import ExamCardsExporter from './components/principal/ExamCardsExporter.tsx';
-import AdministrativeCorrespondence from './components/principal/AdministrativeCorrespondence.tsx';
+// import ExamHallsManager from './components/principal/ExamHallsManager.tsx';
+// import CoverEditor from './components/principal/CoverEditor.tsx';
+// import ExamCardsExporter from './components/principal/ExamCardsExporter.tsx';
+// import AdministrativeCorrespondence from './components/principal/AdministrativeCorrespondence.tsx';
 // import PrimaryLogExporter from './components/principal/PrimaryLogExporter.tsx'; // Temporarily disabled
 // import AbsenceManager from './components/principal/AbsenceManager.tsx'; // Temporarily disabled
-import SchoolArchive from './components/principal/SchoolArchive.tsx';
+// import SchoolArchive from './components/principal/SchoolArchive.tsx';
 // import ExamControlLog from './components/principal/ExamControlLog.tsx'; // Temporarily disabled
 // import ParentInvitationExporter from './components/principal/ParentInvitationExporter.tsx'; // Temporarily disabled
 
@@ -370,7 +370,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'grade_sheet':
                     return <UnderMaintenance featureName="سجل الدرجات" />;
                 case 'administrative_correspondence':
-                    return <AdministrativeCorrespondence />;
+                    return <UnderMaintenance featureName="مخاطبات ادارية" />;
                 // case 'parent_invitations': // Temporarily disabled
                 //     return <ParentInvitationExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'export_results':
@@ -396,17 +396,17 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'grade_board':
                     return <UnderMaintenance featureName="بورد الدرجات" />;
                 case 'oral_exam_lists':
-                    return <OralExamListsExporter classes={principalClasses} settings={effectiveSettings} />;
+                    return <UnderMaintenance featureName="قوائم الشفوي" />;
                 case 'exam_cards':
-                    return <ExamCardsExporter settings={effectiveSettings} />;
+                    return <UnderMaintenance featureName="بطاقات امتحانية" />;
                 case 'exam_halls':
-                    return <ExamHallsManager />;
+                    return <UnderMaintenance featureName="قاعات امتحانية" />;
                 case 'cover_editor':
-                    return <CoverEditor />;
+                    return <UnderMaintenance featureName="محرر الأغلفة" />;
                 case 'exam_control_log':
                     return <UnderMaintenance featureName="سجل السيطرة الامتحانية" />;
                 case 'school_archive':
-                    return <SchoolArchive />;
+                    return <UnderMaintenance featureName="ارشيف المدرسة" />;
                 default:
                     return <ClassManager classes={principalClasses} onSelectClass={handleSelectClass} currentUser={currentUser} />;
             }
