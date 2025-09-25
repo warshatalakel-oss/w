@@ -1,8 +1,5 @@
-
-
 import React from 'react';
-// FIX: Add missing type import
-import type { User, SchoolSettings, ClassData, Student, AbsenceStatus } from '../../types';
+import type { User, SchoolSettings, ClassData, Student, AbsenceStatus } from '../../types.ts';
 
 interface MonthlyAbsenceReportPDFProps {
     settings: SchoolSettings;

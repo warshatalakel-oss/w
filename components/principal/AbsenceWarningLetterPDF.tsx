@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SchoolSettings, ClassData, Student } from '../../types';
+import type { SchoolSettings, ClassData, Student } from '../../types.ts';
 
 interface AbsenceWarningLetterPDFProps {
     settings: SchoolSettings;
