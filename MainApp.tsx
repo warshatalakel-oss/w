@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Settings as SettingsIcon, BookUser, Home, Printer, BarChart, ClipboardList, Archive, User, LogOut, Eye, ChevronsRight, ChevronsLeft, BookCopy, LayoutGrid, ClipboardCheck, Info, Presentation, Brush, Mail, BookMarked, BookText, FileText, PlayCircle, X, Users, CalendarClock, Bell, ClipboardPaste } from 'lucide-react';
 import type { SchoolSettings, ClassData, User as CurrentUser, Teacher } from './types.ts';
@@ -25,7 +26,7 @@ import AboutModal from './components/AboutModal.tsx';
 // import ExamCardsExporter from './components/principal/ExamCardsExporter.tsx';
 // import AdministrativeCorrespondence from './components/principal/AdministrativeCorrespondence.tsx';
 // import PrimaryLogExporter from './components/principal/PrimaryLogExporter.tsx'; // Temporarily disabled
-// import AbsenceManager from './components/principal/AbsenceManager.tsx'; // Temporarily disabled
+import AbsenceManager from './components/principal/AbsenceManager.tsx';
 // import SchoolArchive from './components/principal/SchoolArchive.tsx';
 // import ExamControlLog from './components/principal/ExamControlLog.tsx'; // Temporarily disabled
 // import ParentInvitationExporter from './components/principal/ParentInvitationExporter.tsx'; // Temporarily disabled
@@ -394,7 +395,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'principal_dashboard':
                     return <PrincipalDashboard principal={currentUser} classes={principalClasses} users={users} addUser={addUser} updateUser={updateUser} deleteUser={deleteUser} />;
                 case 'absence_manager':
-                    return <UnderMaintenance featureName="إدارة الغيابات" />;
+                    return <AbsenceManager principal={currentUser} settings={effectiveSettings} classes={principalClasses} />;
                 // case 'receive_teacher_logs': // Temporarily disabled
                 //     return <ReceiveTeacherLog principal={currentUser} classes={principalClasses} settings={effectiveSettings} />;
                 case 'electronic_logbook':
