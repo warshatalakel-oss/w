@@ -1,7 +1,4 @@
-import firebase from 'firebase/compat/app';
-import 'firebase/compat/auth';
-import 'firebase/compat/database';
-import 'firebase/compat/storage';
+declare const firebase: any;
 
 const firebaseConfig = {
   apiKey: "AIzaSyCB52G4sn5iPFEhY2nd2h83VslGYgmqzkc",
@@ -22,6 +19,7 @@ export const app = firebase.app();
 // Get a reference to the database service
 export const db = firebase.database();
 export const auth = firebase.auth();
+// FIX: Export the firebase storage service.
 export const storage = firebase.storage();
 
 // Assign the global firebase object to a module-scoped constant to allow it to be exported.

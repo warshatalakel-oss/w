@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import type { Teacher, ClassData } from '../../types.ts';
-import { BOOK_LINKS } from '../../data/bookLinks.ts';
+import type { Teacher, ClassData } from '../../types';
+import { BOOK_LINKS } from '../../data/bookLinks';
 import { Link as LinkIcon, Copy, Check, Info, Eye, X } from 'lucide-react';
 
 interface TeacherLinksProps {

@@ -1,11 +1,13 @@
 
 
+
+
 import React, { useState, useMemo, useEffect } from 'react';
 // FIX: Add missing type import
-import type { User, ClassData, TeacherSubmission, TeacherSubjectGrade, SchoolSettings } from '../../types.ts';
-import useAuth from '../../hooks/useAuth.ts';
-import TeacherGradeSheet from '../teacher/TeacherGradeSheet.tsx'; // Re-using for display
-import { db } from '../../lib/firebase.ts';
+import type { User, ClassData, TeacherSubmission, TeacherSubjectGrade, SchoolSettings } from '../../types';
+import useAuth from '../../hooks/useAuth';
+import TeacherGradeSheet from '../teacher/TeacherGradeSheet'; // Re-using for display
+import { db } from '../../lib/firebase';
 
 interface ReceiveTeacherLogProps {
     principal: User;
@@ -106,4 +108,71 @@ export default function ReceiveTeacherLog({ principal, classes, settings }: Rece
         
         return (
             <div>
-                 <button onClick={() => setSelectedSubmission(
+                 <button onClick={() => setSelectedSubmission(null)} className="mb-4 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">
+                    &larr; العودة إلى قائمة السجلات
+                </button>
+                <TeacherGradeSheet
+                    classData={classDataWithGrades}
+                    teacher={teacher as any}
+                    settings={settings}
+                    isReadOnly={true}
+                    subjectId={selectedSubmission.subjectId}
+                />
+            </div>
+        )
+    }
+
+    return (
+        <div className="bg-white p-8 rounded-xl shadow-lg">
+            <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-4">استلام سجلات المدرسين</h2>
+            
+            <div className="mb-4">
+                <label className="block text-md font-bold text-gray-700 mb-2">اختر مدرس لعرض سجلاته المستلمة:</label>
+                <select 
+                    onChange={e => setSelectedTeacherId(e.target.value)} 
+                    value={selectedTeacherId || ''}
+                    className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg"
+                >
+                    <option value="">-- كل المدرسين --</option>
+                    {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+                </select>
+            </div>
+
+            <div className="space-y-4">
+                {(selectedTeacherId ? [teachers.find(t=>t.id === selectedTeacherId)] : teachers).map(teacher => {
+                    if (!teacher) return null;
+                    const teacherSubs = submissionsByTeacher.get(teacher.id) || [];
+                    if (teacherSubs.length === 0) return null;
+
+                    return (
+                        <div key={teacher.id} className="p-4 bg-gray-50 rounded-lg border">
+                            <h3 className="text-xl font-bold text-gray-700">{teacher.name}</h3>
+                            <div className="mt-2 space-y-2">
+                                {teacherSubs.map(sub => (
+                                    <div key={sub.id} className="flex justify-between items-center p-2 bg-white rounded border">
+                                        <div>
+                                            <span className="font-semibold">{getClassName(sub.classId)}</span>
+                                            <span className="mx-2 text-gray-400">|</span>
+                                            <span>{getSubjectName(sub.classId, sub.subjectId)}</span>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                             <span className="text-sm text-gray-500">
+                                                آخر تحديث: {new Date(sub.submittedAt).toLocaleString('ar-EG')}
+                                            </span>
+                                            <button onClick={() => handleViewSubmission(sub)} className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600">
+                                                عرض السجل
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })}
+                 {teacherSubmissions.length === 0 && (
+                    <p className="text-center text-gray-500 py-8">لم يتم استلام أي سجلات من المدرسين بعد.</p>
+                )}
+            </div>
+        </div>
+    );
+}
