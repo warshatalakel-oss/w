@@ -1,13 +1,13 @@
 declare const firebase: any;
 
 const firebaseConfig = {
-  apiKey: "AIzaSyBAXuGI8jMYMwldtZtvU5clGi-uCTGX2L8",
-  authDomain: "kade-6f3dc.firebaseapp.com",
-  projectId: "kade-6f3dc",
-  storageBucket: "kade-6f3dc.firebasestorage.app",
-  messagingSenderId: "972788062869",
-  appId: "1:972788062869:web:4e0ae704b559d650d2999c",
-  measurementId: "G-8PTX3P4ZT9"
+  apiKey: "AIzaSyCB52G4sn5iPFEhY2nd2h83VslGYgmqzkc",
+  authDomain: "kadm-a5489.firebaseapp.com",
+  projectId: "kadm-a5489",
+  storageBucket: "kadm-a5489.firebasestorage.app",
+  messagingSenderId: "403912053525",
+  appId: "1:403912053525:web:e87f4bf1f4c3fe22d04f1c",
+  measurementId: "G-VW4MST0FTE"
 };
 
 // Initialize Firebase
