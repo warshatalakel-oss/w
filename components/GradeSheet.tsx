@@ -123,7 +123,13 @@ export default function GradeSheet({ classData, settings }: GradeSheetProps): Re
     const scrollContainerRef = useRef<HTMLDivElement>(null);
     const [showScrollButtons, setShowScrollButtons] = useState(false);
     
-    const students = useMemo(() => (classData.students || []).sort((a,b) => (a.examId || '').localeCompare(b.examId || '', undefined, { numeric: true })), [classData.students]);
+    const [localStudents, setLocalStudents] = useState<Student[]>([]);
+
+    useEffect(() => {
+        const sorted = (classData.students || []).sort((a,b) => (a.examId || '').localeCompare(b.examId || '', undefined, { numeric: true }));
+        setLocalStudents(sorted);
+    }, [classData.students]);
+
     const subjects = useMemo(() => classData.subjects || [], [classData.subjects]);
     
     const stageType = useMemo(() => {
@@ -201,28 +207,45 @@ export default function GradeSheet({ classData, settings }: GradeSheetProps): Re
         resizeObserver.observe(container);
         checkScroll();
         return () => resizeObserver.disconnect();
-    }, [students, subjects, columnConfig]);
+    }, [localStudents, subjects, columnConfig]);
 
 
     const handleGradeChange = useCallback((studentId: string, subjectName: string, field: keyof SubjectGrade, value: number | null) => {
-        const studentIndex = (classData.students || []).findIndex(s => s.id === studentId);
-        if (studentIndex === -1) return;
-        const gradePath = `classes/${classData.id}/students/${studentIndex}/grades/${subjectName}/${field}`;
+        // 1. Update local state for immediate UI feedback
+        setLocalStudents(prevStudents =>
+            prevStudents.map(student => {
+                if (student.id === studentId) {
+                    const newGrades = { ...student.grades };
+                    if (!newGrades[subjectName]) {
+                        newGrades[subjectName] = { ...DEFAULT_SUBJECT_GRADE };
+                    }
+                    const newSubjectGrade = { ...newGrades[subjectName], [field]: value };
+                    newGrades[subjectName] = newSubjectGrade;
+                    return { ...student, grades: newGrades };
+                }
+                return student;
+            })
+        );
+
+        // 2. Persist to Firebase (this is the auto-save)
+        const originalStudentIndex = (classData.students || []).findIndex(s => s.id === studentId);
+        if (originalStudentIndex === -1) return;
+        const gradePath = `classes/${classData.id}/students/${originalStudentIndex}/grades/${subjectName}/${field}`;
         db.ref(gradePath).set(value);
-    }, [classData]);
+    }, [classData.id, classData.students]);
 
     const handleAutoAdvance = useCallback((currentInput: HTMLInputElement | null) => {
         if (!currentInput?.form) return;
         const { studentId, subjectName, field } = currentInput.dataset;
         if (!studentId || !subjectName || !field) return;
         
-        const currentStudentIndex = students.findIndex(s => s.id === studentId);
-        if (currentStudentIndex !== -1 && currentStudentIndex < students.length - 1) {
-            const nextStudentId = students[currentStudentIndex + 1].id;
+        const currentStudentIndex = localStudents.findIndex(s => s.id === studentId);
+        if (currentStudentIndex !== -1 && currentStudentIndex < localStudents.length - 1) {
+            const nextStudentId = localStudents[currentStudentIndex + 1].id;
             const nextInput = currentInput.form.querySelector(`input[data-student-id="${nextStudentId}"][data-subject-name="${subjectName}"][data-field="${field}"]`) as HTMLInputElement;
             if (nextInput) { nextInput.focus(); nextInput.select(); }
         }
-    }, [students]);
+    }, [localStudents]);
 
     const handleEnterPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') { e.preventDefault(); handleAutoAdvance(e.currentTarget); }
@@ -234,26 +257,26 @@ export default function GradeSheet({ classData, settings }: GradeSheetProps): Re
             id: uuidv4(), name: newStudentData.name.trim(), registrationId: newStudentData.registrationId.trim(),
             birthDate: newStudentData.birthDate.trim(), examId: newStudentData.examId.trim(), grades: {},
         };
-        const updatedStudents = [...students, studentToAdd].sort((a,b) => (a.examId || '').localeCompare(b.examId || '', undefined, { numeric: true }));
+        const updatedStudents = [...(classData.students || []), studentToAdd].sort((a,b) => (a.examId || '').localeCompare(b.examId || '', undefined, { numeric: true }));
         db.ref(`classes/${classData.id}`).update({ students: updatedStudents });
         setIsAddStudentModalOpen(false);
         setNewStudentData({ name: '', registrationId: '', birthDate: '', examId: '' });
-    }, [newStudentData, classData, students]);
+    }, [newStudentData, classData]);
 
     const handleDeleteStudent = useCallback((studentIdToDelete: string) => {
         if (window.confirm('هل أنت متأكد من حذف هذا الطالب وجميع درجاته؟ لا يمكن التراجع عن هذا الإجراء.')) {
-            const updatedStudents = students.filter(s => s.id !== studentIdToDelete);
+            const updatedStudents = (classData.students || []).filter(s => s.id !== studentIdToDelete);
             db.ref(`classes/${classData.id}`).update({ students: updatedStudents });
         }
-    }, [classData, students]);
+    }, [classData]);
 
     const handleExportExcel = useCallback(() => {
-        if (!students || students.length === 0) {
+        if (!localStudents || localStudents.length === 0) {
             alert('لا يوجد طلاب في هذه الشعبة للتصدير.');
             return;
         }
 
-        const dataForExcel = students.map(student => ({
+        const dataForExcel = localStudents.map(student => ({
             'اسم الطالب': student.name
         }));
 
@@ -263,15 +286,15 @@ export default function GradeSheet({ classData, settings }: GradeSheetProps): Re
         
         const fileName = `أسماء-طلاب-${classData.stage}-${classData.section}.xlsx`;
         XLSX.writeFile(workbook, fileName);
-    }, [students, classData.stage, classData.section]);
+    }, [localStudents, classData.stage, classData.section]);
     
     const results = useMemo(() => {
         const studentResults: Record<string, { finalCalculatedGrades: Record<string, CalculatedGrade>, result: StudentResult }> = {};
-        students.forEach(student => {
+        localStudents.forEach(student => {
             studentResults[student.id] = calculateStudentResult(student, subjects, settings, classData);
         });
         return studentResults;
-    }, [students, subjects, settings, classData]);
+    }, [localStudents, subjects, settings, classData]);
     
     const renderFinalGradeCell = (originalGrade: number | null, decisionGrade: number | null, decisionApplied: number) => {
         if (decisionGrade === null) return <span className="text-gray-400">-</span>;
@@ -341,7 +364,7 @@ export default function GradeSheet({ classData, settings }: GradeSheetProps): Re
                     </button>
                 </div>
             </div>
-             <p className="text-sm text-gray-500 mb-6">مجموع الطلاب: {students.length}</p>
+             <p className="text-sm text-gray-500 mb-6">مجموع الطلاب: {localStudents.length}</p>
             <div className="relative">
                  <div ref={scrollContainerRef} className="overflow-x-auto">
                     <form>
@@ -368,7 +391,7 @@ export default function GradeSheet({ classData, settings }: GradeSheetProps): Re
                             </tr>
                         </thead>
                         <tbody>
-                            {students.map((student, studentIndex) => {
+                            {localStudents.map((student, studentIndex) => {
                                  const studentResultData = results[student.id] || { finalCalculatedGrades: {}, result: { status: 'قيد الانتظار', message: ''} };
                                  const rowBgStyle = { backgroundColor: studentIndex % 2 === 0 ? 'white' : '#F9FAFB' };
                                 return (
