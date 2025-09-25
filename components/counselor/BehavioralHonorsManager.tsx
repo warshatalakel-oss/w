@@ -20,7 +20,7 @@ interface BehavioralHonorsManagerProps {
     submissions: StudentSubmission[];
 }
 
-export default function BehavioralHonorsManager({ currentUser, classes, submissions }: BehavioralHonorsManagerProps) {
+export default function BehavioralHonorsManager({ currentUser, classes, users, submissions }: BehavioralHonorsManagerProps) {
     const [selectedStage, setSelectedStage] = useState('');
     const [honorBoardData, setHonorBoardData] = useState<BehavioralHonorBoard | null>(null);
     const [isLoading, setIsLoading] = useState(false);

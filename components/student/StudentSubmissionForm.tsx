@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { db } from '../../lib/firebase';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,7 +21,6 @@ export default function StudentSubmissionForm({ submissionInfo, onLogout }: Stud
     const [formData, setFormData] = useState<Record<string, string>>({
         stage: submissionInfo.stage,
     });
-    // FIX: Add state for student photo
     const [studentPhoto, setStudentPhoto] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submissionSuccess, setSubmissionSuccess] = useState(false);
@@ -54,7 +52,6 @@ export default function StudentSubmissionForm({ submissionInfo, onLogout }: Stud
         setFormData(prev => ({ ...prev, [field]: value }));
     };
 
-    // FIX: Add handler for photo upload
     const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
@@ -133,19 +130,20 @@ export default function StudentSubmissionForm({ submissionInfo, onLogout }: Stud
                 
                 pdf.addImage(canvas.toDataURL('image/png'), 'PNG', xPos, yPos, imgWidth, imgHeight, undefined, 'FAST');
             };
-
-            const canvas1 = await html2canvas(page1Element, { scale: 2, useCORS: true });
+            
+            const canvas1 = await html2canvas(page1Element, { scale: 2, useCORS: true, logging: true });
             await addCanvasToPdf(canvas1);
+    
             pdf.addPage();
             const canvas2 = await html2canvas(page2Element, { scale: 2, useCORS: true });
             await addCanvasToPdf(canvas2);
-
+    
             pdf.save(`استمارة-${formData.fullName || 'طالب'}.pdf`);
             setPdfExported(true);
 
-        } catch (error) {
-            console.error("PDF export failed:", error);
-            alert("فشل تصدير الملف.");
+        } catch(e) {
+            console.error("PDF export from principal view failed:", e);
+            alert('فشل تصدير الملف.');
         } finally {
             allButtons.forEach(btn => ((btn as HTMLElement).style.visibility = 'visible'));
             setIsExporting(false);
@@ -165,7 +163,6 @@ export default function StudentSubmissionForm({ submissionInfo, onLogout }: Stud
                 studentName: formData.fullName,
                 stage: submissionInfo.stage,
                 formData: formData,
-                // FIX: Pass the studentPhoto state to the submission data.
                 studentPhoto: studentPhoto,
                 submittedAt: new Date().toISOString(),
                 status: 'pending'
@@ -207,7 +204,6 @@ export default function StudentSubmissionForm({ submissionInfo, onLogout }: Stud
             <div ref={formRef}>
                 <div className="space-y-8">
                      <div id="pdf-page-1">
-                        {/* FIX: Pass studentPhoto and onPhotoUpload props to RegistrationFormPage1 */}
                         <RegistrationFormPage1 
                             formData={formData} 
                             onUpdate={handleUpdate} 

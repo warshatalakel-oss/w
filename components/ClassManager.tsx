@@ -59,362 +59,315 @@ export default function ClassManager({ classes, onSelectClass, currentUser, teac
             // Secondary sort by section name, alphabetically for Arabic
             return a.section.localeCompare(b.section, 'ar-IQ');
         });
-    }, [classes, currentUser, teacherAssignments, isPrincipal]);
+    }, [classes, isPrincipal, currentUser.id, teacherAssignments]);
 
-    const openModalForNew = () => {
-        if (!isPrincipal) return;
-        setEditingClass({});
-        setIsModalOpen(true);
-    };
-
-    const openModalForEdit = (classData: ClassData) => {
-        if (!isPrincipal) return;
-        setEditingClass(classData);
+    const handleOpenModal = (classToEdit: Partial<ClassData> | null) => {
+        if (classToEdit) {
+            setEditingClass(classToEdit);
+        } else {
+            // Re-enable adding all grade levels, defaulting to a sensible choice.
+            const defaultStage = GRADE_LEVELS[6] || GRADE_LEVELS[0]; // Default to 'الاول متوسط' for this school
+            setEditingClass({
+                id: '',
+                stage: defaultStage,
+                section: '',
+                subjects: DEFAULT_SUBJECTS[defaultStage] || [],
+                students: [],
+                principalId: currentUser.id,
+            });
+        }
         setIsModalOpen(true);
     };
 
     const handleSaveClass = () => {
-        if (!isPrincipal || !editingClass || !editingClass.stage) return;
-        if (!editingClass?.section) {
-            alert('يرجى ملء المرحلة والشعبة.');
+        if (!editingClass || !editingClass.stage || !editingClass.section) {
+            alert('يرجى تحديد المرحلة والشعبة.');
             return;
         }
 
-        const isMinisterial = MINISTERIAL_STAGES.includes(editingClass.stage);
-
-        const dataToSave: Partial<ClassData> = {
+        const classToSave: ClassData = {
+            id: editingClass.id || uuidv4(),
             stage: editingClass.stage,
             section: editingClass.section,
             subjects: editingClass.subjects || [],
-            ministerialDecisionPoints: isMinisterial ? (editingClass.ministerialDecisionPoints ?? 5) : undefined,
-            ministerialSupplementarySubjects: isMinisterial ? (editingClass.ministerialSupplementarySubjects ?? 3) : undefined,
+            students: editingClass.students || [],
+            principalId: currentUser.id,
+            ...MINISTERIAL_STAGES.includes(editingClass.stage) && {
+                ministerialDecisionPoints: editingClass.ministerialDecisionPoints ?? 5,
+                ministerialSupplementarySubjects: editingClass.ministerialSupplementarySubjects ?? 2,
+            }
         };
 
-
-        if (editingClass.id) { // Editing existing class
-             const classRef = db.ref(`classes/${editingClass.id}`);
-             classRef.update(dataToSave);
-        } else { // Adding new class
-            const newClass: ClassData = {
-                id: uuidv4(),
-                stage: editingClass.stage,
-                section: editingClass.section,
-                subjects: editingClass.subjects || [],
-                students: [],
-                principalId: currentUser.id,
-                ministerialDecisionPoints: dataToSave.ministerialDecisionPoints,
-                ministerialSupplementarySubjects: dataToSave.ministerialSupplementarySubjects,
-            };
-            db.ref(`classes/${newClass.id}`).set(newClass);
-        }
+        db.ref(`classes/${classToSave.id}`).set(classToSave);
         setIsModalOpen(false);
         setEditingClass(null);
     };
 
     const handleDeleteClass = (classId: string) => {
-        if (!isPrincipal) return;
-        if (window.confirm('هل أنت متأكد من حذف هذه الشعبة بكل طلابها ودرجاتها؟ لا يمكن التراجع عن هذا الإجراء.')) {
+        if (window.confirm('هل أنت متأكد من حذف هذه الشعبة وجميع الطلاب فيها؟ لا يمكن التراجع عن هذا الإجراء.')) {
             db.ref(`classes/${classId}`).remove();
         }
     };
-    
-    const openStudentModal = (classData: ClassData) => {
-        if (!isPrincipal) return;
-        setSelectedClassForStudentAdd(classData);
-        setPastedData('');
-        setIsStudentModalOpen(true);
-    };
 
-    const handleFileImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleStageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const newStage = e.target.value;
+        setEditingClass(prev => ({
+            ...prev,
+            stage: newStage,
+            subjects: DEFAULT_SUBJECTS[newStage] || [],
+        }));
+    };
+    
+    const handleAddStudentFromFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || !selectedClassForStudentAdd) return;
 
         const reader = new FileReader();
         reader.onload = (event) => {
-            const data = event.target?.result;
-            const workbook = XLSX.read(data, { type: 'binary' });
+            const data = new Uint8Array(event.target?.result as ArrayBuffer);
+            const workbook = XLSX.read(data, { type: 'array' });
             const sheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[sheetName];
             const json: any[] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
             
-            const newStudents = json.slice(1).map((row: any[]): Student => ({
-                id: uuidv4(),
-                name: row[0] || '',
-                registrationId: row[1]?.toString() || '',
-                birthDate: row[2]?.toString() || '',
-                examId: row[3]?.toString() || '',
-                yearsOfFailure: row[4]?.toString() || '',
-                motherName: row[5]?.toString() || '',
-                motherFatherName: row[6]?.toString() || '',
-                grades: {}
-            })).filter(s => s.name);
+            const newStudents: Student[] = json
+                .slice(1) // Skip header row
+                .map((row: any[]) => ({
+                    id: uuidv4(),
+                    name: row[0] ? String(row[0]).trim() : '',
+                    examId: row[1] ? String(row[1]).trim() : undefined,
+                    registrationId: row[2] ? String(row[2]).trim() : undefined,
+                    birthDate: row[3] ? String(row[3]).trim() : undefined,
+                    grades: {},
+                }))
+                .filter(student => student.name);
 
-            addStudentsToClass(newStudents);
+            if (newStudents.length > 0) {
+                const updatedStudents = [...(selectedClassForStudentAdd.students || []), ...newStudents];
+                db.ref(`classes/${selectedClassForStudentAdd.id}/students`).set(updatedStudents);
+                alert(`تمت إضافة ${newStudents.length} طالب بنجاح.`);
+                setIsStudentModalOpen(false);
+            }
         };
-        reader.readAsBinaryString(file);
-        e.target.value = ''; // Reset file input
+        reader.readAsArrayBuffer(file);
     };
 
-    const handlePasteData = () => {
+    const handleAddStudentFromPaste = () => {
         if (!pastedData || !selectedClassForStudentAdd) return;
+
         const rows = pastedData.split('\n').filter(row => row.trim() !== '');
-        const newStudents = rows.map(row => {
+        const newStudents: Student[] = rows.map(row => {
             const columns = row.split('\t'); // Assuming tab-separated
             return {
                 id: uuidv4(),
-                name: columns[0] || '',
-                registrationId: columns[1] || '',
-                birthDate: columns[2] || '',
-                examId: columns[3] || '',
-                yearsOfFailure: columns[4] || '',
-                motherName: columns[5] || '',
-                motherFatherName: columns[6] || '',
-                grades: {}
+                name: columns[0] ? columns[0].trim() : '',
+                examId: columns[1] ? columns[1].trim() : undefined,
+                registrationId: columns[2] ? columns[2].trim() : undefined,
+                birthDate: columns[3] ? columns[3].trim() : undefined,
+                grades: {},
             };
-        }).filter(s => s.name);
-        addStudentsToClass(newStudents);
+        }).filter(student => student.name);
+
+        if (newStudents.length > 0) {
+            const updatedStudents = [...(selectedClassForStudentAdd.students || []), ...newStudents];
+            db.ref(`classes/${selectedClassForStudentAdd.id}/students`).set(updatedStudents);
+            alert(`تمت إضافة ${newStudents.length} طالب بنجاح.`);
+            setIsStudentModalOpen(false);
+            setPastedData('');
+        }
     };
+    
+    const handleSubjectNameChange = () => {
+        if (!editingClass || !editingSubjectId || !editingSubjectName.trim()) return;
 
-    const addStudentsToClass = (newStudents: Student[]) => {
-        if (!selectedClassForStudentAdd) return;
-        const targetClassId = selectedClassForStudentAdd.id;
-        const currentClass = classes.find(c => c.id === targetClassId);
-        if (!currentClass) return;
-        
-        const existingStudents = currentClass.students || [];
-        const updatedStudents = [...existingStudents, ...newStudents].sort((a,b) => {
-            const aId = a.examId || '';
-            const bId = b.examId || '';
-            const numA = parseInt(aId, 10);
-            const numB = parseInt(bId, 10);
-            if (!isNaN(numA) && !isNaN(numB)) {
-                return numA - numB;
-            }
-            return aId.localeCompare(bId, undefined, { numeric: true });
-        });
-        db.ref(`classes/${targetClassId}`).update({ students: updatedStudents });
+        const newSubjects = (editingClass.subjects || []).map(s => 
+            s.id === editingSubjectId ? { ...s, name: editingSubjectName.trim() } : s
+        );
 
-        alert(`تمت إضافة ${newStudents.length} طالب بنجاح.`);
-        setIsStudentModalOpen(false);
-    }
-
-    // --- Subject Management Handlers ---
-    const handleStageChange = (newStage: string) => {
-        const isMinisterial = MINISTERIAL_STAGES.includes(newStage);
-        setEditingClass(prev => ({
-            ...prev,
-            id: prev?.id, // Keep id if editing
-            stage: newStage,
-            subjects: DEFAULT_SUBJECTS[newStage] || [],
-            section: prev?.section, // Keep section
-            // Set defaults for ministerial stages
-            ministerialDecisionPoints: isMinisterial ? (prev?.ministerialDecisionPoints ?? 5) : undefined,
-            ministerialSupplementarySubjects: isMinisterial ? (prev?.ministerialSupplementarySubjects ?? 3) : undefined,
-        }));
-    };
-
-    const handleAddSubject = () => {
-        if (!newSubjectName.trim() || !editingClass) return;
-        const newSubject: Subject = {
-            id: uuidv4(),
-            name: newSubjectName.trim(),
-        };
-        setEditingClass(prev => ({
-            ...prev,
-            subjects: [...(prev?.subjects || []), newSubject],
-        }));
-        setNewSubjectName('');
-    };
-
-    const handleStartEditSubject = (subject: Subject) => {
-        setEditingSubjectId(subject.id);
-        setEditingSubjectName(subject.name);
-    };
-
-    const handleCancelEditSubject = () => {
+        setEditingClass(prev => ({...prev, subjects: newSubjects}));
         setEditingSubjectId(null);
         setEditingSubjectName('');
     };
 
-    const handleSaveSubject = (subjectId: string) => {
-        if (!editingSubjectName.trim()) return;
-        setEditingClass(prev => {
-            if (!prev || !prev.subjects) return prev;
-            return {
-                ...prev,
-                subjects: prev.subjects.map(s => 
-                    s.id === subjectId ? { ...s, name: editingSubjectName.trim() } : s
-                ),
-            };
-        });
-        handleCancelEditSubject();
+    const handleAddSubject = () => {
+        if (!editingClass || !newSubjectName.trim()) return;
+
+        const newSubject: Subject = { id: uuidv4(), name: newSubjectName.trim() };
+        const newSubjects = [...(editingClass.subjects || []), newSubject];
+
+        setEditingClass(prev => ({...prev, subjects: newSubjects}));
+        setNewSubjectName('');
+    };
+    
+    const handleDeleteSubject = (subjectIdToDelete: string) => {
+         if (!editingClass) return;
+         const newSubjects = (editingClass.subjects || []).filter(s => s.id !== subjectIdToDelete);
+         setEditingClass(prev => ({...prev, subjects: newSubjects}));
+    };
+    
+    const renderModal = () => {
+        if (!isModalOpen) return null;
+        const isMinisterial = editingClass?.stage ? MINISTERIAL_STAGES.includes(editingClass.stage) : false;
+
+        return (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+                <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-4xl h-[80vh] flex flex-col">
+                    <h3 className="text-xl font-bold mb-4">{editingClass?.id ? 'تعديل الشعبة' : 'إضافة شعبة جديدة'}</h3>
+                    <div className="flex-1 overflow-y-auto pr-2 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                             <div>
+                                <label className="block text-sm font-medium text-gray-700">المرحلة الدراسية</label>
+                                <select
+                                    value={editingClass?.stage || ''}
+                                    onChange={handleStageChange}
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm bg-white disabled:bg-gray-200"
+                                    disabled={!!editingClass?.id}
+                                >
+                                    {GRADE_LEVELS.map(level => (
+                                        <option key={level} value={level}>{level}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700">اسم الشعبة</label>
+                                <input
+                                    type="text"
+                                    value={editingClass?.section || ''}
+                                    onChange={(e) => setEditingClass(prev => ({ ...prev, section: e.target.value }))}
+                                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"
+                                />
+                            </div>
+                        </div>
+
+                        {isMinisterial && (
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                 <div>
+                                    <label className="block text-sm font-medium text-gray-700">درجات القرار الوزاري</label>
+                                    <input
+                                        type="number"
+                                        value={editingClass?.ministerialDecisionPoints ?? 5}
+                                        onChange={(e) => setEditingClass(prev => ({ ...prev, ministerialDecisionPoints: parseInt(e.target.value) }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700">عدد مواد الاكمال الوزاري</label>
+                                    <input
+                                        type="number"
+                                        value={editingClass?.ministerialSupplementarySubjects ?? 2}
+                                        onChange={(e) => setEditingClass(prev => ({ ...prev, ministerialSupplementarySubjects: parseInt(e.target.value) }))}
+                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
+                                    />
+                                </div>
+                            </div>
+                        )}
+                        
+                        <div className="mt-4">
+                            <h4 className="font-semibold mb-2">المواد الدراسية</h4>
+                            <div className="space-y-2 max-h-60 overflow-y-auto border p-2 rounded-md">
+                                {(editingClass?.subjects || []).map(subject => (
+                                    <div key={subject.id} className="flex items-center gap-2 p-1 bg-gray-100 rounded">
+                                        {editingSubjectId === subject.id ? (
+                                            <>
+                                                <input value={editingSubjectName} onChange={e => setEditingSubjectName(e.target.value)} className="flex-grow p-1 border rounded" autoFocus onBlur={handleSubjectNameChange} onKeyDown={e => e.key === 'Enter' && handleSubjectNameChange()}/>
+                                                <button onClick={handleSubjectNameChange}><Save size={18} className="text-green-600"/></button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="flex-grow">{subject.name}</span>
+                                                <button onClick={() => { setEditingSubjectId(subject.id); setEditingSubjectName(subject.name); }}><Edit size={18} className="text-yellow-600"/></button>
+                                                <button onClick={() => handleDeleteSubject(subject.id)}><Trash2 size={18} className="text-red-600"/></button>
+                                            </>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                             <div className="flex items-center gap-2 mt-2">
+                                <input value={newSubjectName} onChange={e => setNewSubjectName(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAddSubject()} placeholder="إضافة مادة جديدة" className="flex-grow p-2 border rounded"/>
+                                <button onClick={handleAddSubject} className="p-2 bg-blue-500 text-white rounded"><Plus/></button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="mt-6 flex justify-end gap-3 pt-4 border-t">
+                        <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md flex items-center gap-2"><X size={18} /> إلغاء</button>
+                        <button onClick={handleSaveClass} className="px-4 py-2 bg-green-600 text-white rounded-md flex items-center gap-2"><Save size={18} /> حفظ</button>
+                    </div>
+                </div>
+            </div>
+        );
     };
 
-    const handleDeleteSubject = (subjectId: string) => {
-        if (window.confirm('هل أنت متأكد من حذف هذه المادة؟')) {
-            setEditingClass(prev => {
-                 if (!prev || !prev.subjects) return prev;
-                 return {
-                    ...prev,
-                    subjects: prev.subjects.filter(s => s.id !== subjectId)
-                 }
-            });
-        }
-    };
+    const renderStudentModal = () => {
+        if (!isStudentModalOpen) return null;
+        return (
+             <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+                <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-lg">
+                    <h3 className="text-xl font-bold mb-4">إضافة طلاب إلى {selectedClassForStudentAdd?.stage} / {selectedClassForStudentAdd?.section}</h3>
+                    <div className="space-y-4">
+                         <div className="p-4 border rounded-lg">
+                             <h4 className="font-semibold mb-2">1. إضافة من ملف Excel</h4>
+                             <p className="text-sm text-gray-500 mb-2">يجب أن يحتوي الملف على الأعمدة التالية بالترتيب: الاسم، الرقم الامتحاني، رقم القيد، التولد.</p>
+                             <input type="file" ref={fileInputRef} onChange={handleAddStudentFromFile} accept=".xlsx, .xls" className="hidden" />
+                             <button onClick={() => fileInputRef.current?.click()} className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700">
+                                 <Upload size={18} />
+                                 <span>اختر ملف</span>
+                             </button>
+                         </div>
+                         <div className="p-4 border rounded-lg">
+                             <h4 className="font-semibold mb-2">2. لصق البيانات من جدول</h4>
+                             <p className="text-sm text-gray-500 mb-2">انسخ البيانات من Excel والصقها هنا. تأكد من نفس ترتيب الأعمدة المذكور أعلاه.</p>
+                             <textarea value={pastedData} onChange={(e) => setPastedData(e.target.value)} rows={5} className="w-full p-2 border rounded" placeholder="الصق بيانات الطلاب هنا..."></textarea>
+                             <button onClick={handleAddStudentFromPaste} className="w-full mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                                 إضافة من النص
+                             </button>
+                         </div>
+                    </div>
+                    <div className="mt-6 flex justify-end">
+                        <button onClick={() => setIsStudentModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md">إغلاق</button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     return (
-        <div className="bg-white p-8 rounded-xl shadow-lg">
-            <div className="flex justify-between items-center mb-6 border-b pb-4">
-                <h2 className="text-3xl font-bold text-gray-800">إدارة الشعب الدراسية</h2>
-                {isPrincipal && (
-                    <button onClick={openModalForNew} className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 transition">
+        <div className="p-4 sm:p-0">
+            {isPrincipal && (
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">إدارة الشعب الدراسية</h2>
+                    <button onClick={() => handleOpenModal(null)} className="flex items-center gap-2 px-4 py-2 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-700 transition-colors shadow-md">
                         <Plus size={20} />
                         <span>إضافة شعبة جديدة</span>
                     </button>
-                )}
-            </div>
-
-            <div className="space-y-4">
-                {displayedClasses.length > 0 ? displayedClasses.map(cls => (
-                    <div key={cls.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-between">
-                        <div>
-                            <h3 className="text-xl font-bold text-gray-700">{cls.stage} - {cls.section}</h3>
-                            <p className="text-sm text-gray-500">{(cls.students || []).length} طالب</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                           <button onClick={() => onSelectClass(cls.id)} className="p-2 text-white bg-green-500 rounded-md hover:bg-green-600 transition" title="عرض سجل الدرجات"><ListVideo size={20}/></button>
-                           {isPrincipal && (
-                               <>
-                                   <button onClick={() => openStudentModal(cls)} className="p-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 transition" title="إضافة طلاب"><UserPlus size={20}/></button>
-                                   <button onClick={() => openModalForEdit(cls)} className="p-2 text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition" title="تعديل الشعبة"><Edit size={20}/></button>
-                                   <button onClick={() => handleDeleteClass(cls.id)} className="p-2 text-white bg-red-500 rounded-md hover:bg-red-600 transition" title="حذف الشعبة"><Trash2 size={20}/></button>
-                               </>
-                           )}
-                        </div>
-                    </div>
-                )) : <p className="text-center text-gray-500 py-8">لم يتم إضافة أي شعبة بعد. ابدأ بإضافة شعبة جديدة.</p>}
-            </div>
-
-            {isPrincipal && isModalOpen && (
-                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
-                    <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-3xl">
-                        <h3 className="text-xl font-bold mb-4">{editingClass?.id ? 'تعديل شعبة' : 'إضافة شعبة جديدة'}</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Left Column: Class Info */}
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">المرحلة</label>
-                                    <select 
-                                        value={editingClass?.stage || ''} 
-                                        onChange={(e) => handleStageChange(e.target.value)}
-                                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500 sm:text-sm rounded-md"
-                                    >
-                                        <option value="" disabled>اختر المرحلة</option>
-                                        {GRADE_LEVELS.map(level => <option key={level} value={level}>{level}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">اسم/رمز الشعبة</label>
-                                    <input 
-                                        type="text" 
-                                        value={editingClass?.section || ''}
-                                        onChange={(e) => setEditingClass({...editingClass, section: e.target.value})}
-                                        className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"
-                                        placeholder="مثال: أ, ب, ج"
-                                    />
-                                </div>
-                                {MINISTERIAL_STAGES.includes(editingClass?.stage || '') && (
-                                    <>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">درجة القرار لدخول الامتحان الوزاري</label>
-                                            <input 
-                                                type="number" 
-                                                value={editingClass?.ministerialDecisionPoints ?? 5}
-                                                onChange={(e) => setEditingClass({...editingClass, ministerialDecisionPoints: parseInt(e.target.value, 10) || 0})}
-                                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700">عدد دروس الاكمال الخاصة بالمرحلة</label>
-                                            <input 
-                                                type="number" 
-                                                value={editingClass?.ministerialSupplementarySubjects ?? 3}
-                                                onChange={(e) => setEditingClass({...editingClass, ministerialSupplementarySubjects: parseInt(e.target.value, 10) || 0})}
-                                                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"
-                                            />
-                                        </div>
-                                    </>
-                                )}
-                            </div>
-                            
-                            {/* Right Column: Subject Editor */}
-                            <div>
-                                {editingClass?.stage && (
-                                    <div>
-                                        <h4 className="text-md font-medium text-gray-700">المواد الدراسية للمرحلة</h4>
-                                        <div className="mt-1 p-2 border border-gray-300 rounded-lg bg-gray-50 h-64 flex flex-col">
-                                            <div className="flex-grow overflow-y-auto space-y-2 pr-2">
-                                                {(editingClass.subjects || []).map(subject => (
-                                                    <div key={subject.id}>
-                                                        {editingSubjectId === subject.id ? (
-                                                            <div className="flex items-center gap-2">
-                                                                <input value={editingSubjectName} onChange={e => setEditingSubjectName(e.target.value)} className="flex-grow px-2 py-1 border border-cyan-500 rounded-md" autoFocus/>
-                                                                <button type="button" onClick={() => handleSaveSubject(subject.id)} className="p-1 text-green-600 hover:bg-green-100 rounded-full"><Save size={18}/></button>
-                                                                <button type="button" onClick={handleCancelEditSubject} className="p-1 text-gray-500 hover:bg-gray-100 rounded-full"><X size={18}/></button>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="flex items-center justify-between p-1 rounded-md hover:bg-gray-200">
-                                                                <span className="text-gray-800">{subject.name}</span>
-                                                                <div className="flex items-center gap-1">
-                                                                    <button type="button" onClick={() => handleStartEditSubject(subject)} className="p-1 text-blue-600 hover:bg-blue-100 rounded-full"><Edit size={16}/></button>
-                                                                    <button type="button" onClick={() => handleDeleteSubject(subject.id)} className="p-1 text-red-600 hover:bg-red-100 rounded-full"><Trash2 size={16}/></button>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <div className="flex items-center gap-2 mt-2 pt-2 border-t">
-                                                <input value={newSubjectName} onChange={e => setNewSubjectName(e.target.value)} className="flex-grow px-2 py-1 border border-gray-300 rounded-md" placeholder="إضافة مادة جديدة..."/>
-                                                <button type="button" onClick={handleAddSubject} className="p-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700"><Plus size={18}/></button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="mt-6 flex justify-end gap-3">
-                            <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">إلغاء</button>
-                            <button onClick={handleSaveClass} className="px-4 py-2 bg-cyan-600 text-white rounded-md hover:bg-cyan-700">{editingClass?.id ? 'حفظ التعديلات' : 'إضافة الشعبة'}</button>
-                        </div>
-                    </div>
                 </div>
             )}
             
-            {isPrincipal && isStudentModalOpen && selectedClassForStudentAdd && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
-                        <h3 className="text-xl font-bold mb-4">إضافة طلاب إلى: {selectedClassForStudentAdd.stage} - {selectedClassForStudentAdd.section}</h3>
-                         <div>
-                            <h4 className="font-semibold text-lg mb-2">1. استيراد من ملف Excel</h4>
-                            <p className="text-sm text-gray-600 mb-2">يجب أن يكون الملف بالترتيب التالي: اسم الطالب، رقم القيد، التولد، الرقم الامتحاني، سنوات الرسوب، اسم الأم، اسم والد الأم. (بدون عناوين للأعمدة)</p>
-                            <input type="file" ref={fileInputRef} onChange={handleFileImport} accept=".xlsx, .xls" className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100"/>
-                        </div>
-                        <div className="my-4 border-t border-gray-200"></div>
-                        <div>
-                             <h4 className="font-semibold text-lg mb-2">2. لصق البيانات</h4>
-                             <p className="text-sm text-gray-600 mb-2">الصق البيانات من جدول (مثل Excel) مع فصل الأعمدة بـ (Tab). بالترتيب: اسم، قيد، تولد، رقم امتحاني، سنوات الرسوب، اسم الأم، اسم والد الأم.</p>
-                             <textarea value={pastedData} onChange={(e) => setPastedData(e.target.value)} rows={8} className="w-full p-2 border border-gray-300 rounded-md" placeholder="اسم الطالب	رقم القيد	التولد	الرقم الامتحاني	سنوات الرسوب	اسم الأم	اسم والد الأم..."></textarea>
-                             <button onClick={handlePasteData} className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">معالجة البيانات الملصقة</button>
-                        </div>
-                         <div className="mt-6 flex justify-end">
-                            <button onClick={() => setIsStudentModalOpen(false)} className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300">إغلاق</button>
+            <div className="space-y-4">
+                {displayedClasses.map(cls => (
+                    <div key={cls.id} className="bg-white p-4 rounded-lg shadow-md border-r-4 border-cyan-500">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                            <div>
+                                <h3 className="text-xl font-bold text-gray-800">{cls.stage} - {cls.section}</h3>
+                                <p className="text-sm text-gray-500">{(cls.students || []).length} طالب</p>
+                            </div>
+                            <div className="flex items-center gap-2 mt-2 sm:mt-0 flex-shrink-0">
+                                {isPrincipal && (
+                                    <>
+                                        <button onClick={() => { setSelectedClassForStudentAdd(cls); setIsStudentModalOpen(true); }} className="p-2 text-white bg-green-500 rounded-md hover:bg-green-600 transition" title="إضافة طلاب"><UserPlus size={18}/></button>
+                                        <button onClick={() => handleOpenModal(cls)} className="p-2 text-white bg-yellow-500 rounded-md hover:bg-yellow-600 transition" title="تعديل"><Edit size={18}/></button>
+                                        <button onClick={() => handleDeleteClass(cls.id)} className="p-2 text-white bg-red-500 rounded-md hover:bg-red-600 transition" title="حذف"><Trash2 size={18}/></button>
+                                    </>
+                                )}
+                                <button onClick={() => onSelectClass(cls.id)} className="p-2 text-white bg-blue-500 rounded-md hover:bg-blue-600 transition" title="عرض سجل الدرجات"><ListVideo size={18}/></button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-
+                ))}
+            </div>
+            
+            {renderModal()}
+            {renderStudentModal()}
         </div>
     );
 }

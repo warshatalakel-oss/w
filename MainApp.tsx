@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import Settings from './components/Settings.tsx';
 import ClassManager from './components/ClassManager.tsx';
-// import GradeSheet from './components/GradeSheet.tsx'; // Temporarily disabled due to missing gradeCalculator.ts
+import GradeSheet from './components/GradeSheet.tsx';
 // import ExportManager from './components/ExportManager.tsx'; // Temporarily disabled due to missing gradeCalculator.ts
 // import StatisticsManager from './components/StatisticsManager.tsx'; // Temporarily disabled
 // import TeacherLogExporter from './components/TeacherLogExporter.tsx'; // Temporarily disabled
@@ -368,7 +368,15 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'settings':
                     return <Settings currentSettings={effectiveSettings} onSave={handleSaveSettings} currentUser={currentUser} updateUser={updateUser} />;
                 case 'grade_sheet':
-                    return <UnderMaintenance featureName="سجل الدرجات" />;
+                    if (selectedClass) {
+                        return <GradeSheet classData={selectedClass} settings={effectiveSettings} />;
+                    }
+                    return (
+                        <div className="text-center p-8 bg-white rounded-lg shadow">
+                            <h2 className="text-2xl font-bold">لم يتم تحديد شعبة</h2>
+                            <p className="mt-2 text-gray-600">يرجى العودة إلى الرئيسية واختيار شعبة لعرض سجل الدرجات.</p>
+                        </div>
+                    );
                 case 'administrative_correspondence':
                     return <UnderMaintenance featureName="مخاطبات ادارية" />;
                 // case 'parent_invitations': // Temporarily disabled

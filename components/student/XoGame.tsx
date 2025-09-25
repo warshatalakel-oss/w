@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import type { User, XOQuestion, XOGameState, PlayerSymbol, ChatMessage, XOGamePlayer, XOGameSettings } from '../../types';
-import { db, firebase } from '../../lib/firebase';
+import type { User, XOQuestion, XOGameState, PlayerSymbol, ChatMessage, XOGamePlayer, XOGameSettings } from '../../types.ts';
+import { db, firebase } from '../../lib/firebase.ts';
 import { Loader2, RefreshCw, Send, Check, X as IconX, AlertTriangle } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import { normalizePathSegment } from '../../lib/utils';
@@ -192,7 +192,6 @@ export default function XoGame({ currentUser, gameId, onExit, forceSubject }: Xo
                     status: 'in_progress',
                     players: [{ id: currentUser.id, name: currentUser.name, symbol: 'X', classId: currentUser.classId, section: currentUser.section }, { id: 'cpu', name: 'الحاسوب', symbol: 'O' }],
                     board: Array(9).fill(null), xIsNext: true, winner: null,
-                    // FIX: Initialize XOGameState.scores with all possible PlayerSymbol keys to satisfy the Record<PlayerSymbol, number> type.
                     scores: { 'X': 0, 'O': 0, '⭐': 0, '🌙': 0, '❤️': 0, '🔷': 0 },
                     currentQuestion: null, questionForSquare: null, questionTimerStart: null, chat: [], createdAt: Date.now(), updatedAt: Date.now()
                 };

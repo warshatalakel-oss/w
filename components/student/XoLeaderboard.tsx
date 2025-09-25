@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import type { User, XOOverallLeaderboardEntry, ClassData, XOGameSettings, XOChallenge, Student, XOGameState, PlayerSymbol } from '../../types';
+import type { User, XOOverallLeaderboardEntry, ClassData, XOGameSettings, XOChallenge, Student, XOGameState, PlayerSymbol } from '../../types.ts';
 import { db } from '../../lib/firebase';
 import { Loader2, Crown, Trophy, Gamepad2, Shield, Users, User as UserIcon, RefreshCw, AlertTriangle, Info, X, PlayCircle } from 'lucide-react';
 import XoGame from './XoGame';
@@ -250,8 +250,8 @@ export default function XoLeaderboard({ currentUser, gameToJoin, onGameJoined }:
                 { id: challenger.id, name: challenger.name, symbol: 'X', classId: challenger.classId, section: challenger.section },
                 { id: currentUser.id, name: currentUser.name, symbol: 'O', classId: currentUser.classId, section: currentUser.section }
             ],
-            board: Array(9).fill(null), xIsNext: true, winner: null, // Fix: Initialize XOGameState.scores with all possible PlayerSymbol keys to satisfy the Record<PlayerSymbol, number> type.
-scores: { 'X': 0, 'O': 0, '⭐': 0, '🌙': 0, '❤️': 0, '🔷': 0 },
+            board: Array(9).fill(null), xIsNext: true, winner: null,
+            scores: { 'X': 0, 'O': 0, '⭐': 0, '🌙': 0, '❤️': 0, '🔷': 0 },
             currentQuestion: null, questionForSquare: null, questionTimerStart: null,
             chat: [], createdAt: Date.now(), updatedAt: Date.now()
         };
