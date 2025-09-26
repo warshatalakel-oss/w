@@ -146,7 +146,8 @@ export default function TeacherGradeSheet({ classData, teacher, settings, isRead
         if (activeSubject) {
             const initialGrades: Record<string, TeacherSubjectGrade> = {};
             (classData.students || []).forEach(student => {
-                initialGrades[student.id] = student.teacherGrades?.[activeSubject.name] || { ...DEFAULT_TEACHER_GRADE };
+                const existingGrades = student.teacherGrades?.[activeSubject.name] || {};
+                initialGrades[student.id] = { ...DEFAULT_TEACHER_GRADE, ...existingGrades };
             });
             setLocalGrades(initialGrades);
         }
@@ -165,16 +166,16 @@ export default function TeacherGradeSheet({ classData, teacher, settings, isRead
         }), 
     [classData.students]);
 
-    const isValidGrade = (g: number | null): g is number => g !== null && g >= 0;
+    const isValidGrade = (g: number | null | undefined): g is number => g !== null && g !== undefined && g >= 0;
 
     const calculateGrades = (grade: TeacherSubjectGrade): TeacherCalculatedGrade => {
         const firstSemAvg = (isValidGrade(grade.firstSemMonth1) && isValidGrade(grade.firstSemMonth2))
             ? Math.round((grade.firstSemMonth1 + grade.firstSemMonth2) / 2)
             : null;
 
-        const secondSemAvg = (isValidGrade(grade.secondSemMonth1) && isValidGrade(grade.secondSemMonth2))
-            ? Math.round((grade.secondSemMonth1 + grade.secondSemMonth2) / 2)
-            : null;
+    const secondSemAvg = (isValidGrade(grade.secondSemMonth1) && isValidGrade(grade.secondSemMonth2))
+        ? Math.round((grade.secondSemMonth1 + grade.secondSemMonth2) / 2)
+        : null;
             
         const annualPursuit = (firstSemAvg !== null && isValidGrade(grade.midYear) && secondSemAvg !== null)
             ? Math.round((firstSemAvg + grade.midYear! + secondSemAvg) / 3)
@@ -218,6 +219,7 @@ export default function TeacherGradeSheet({ classData, teacher, settings, isRead
     }, [sortedStudents, localGrades, isPrimary5_6]);
 
     const handleGradeChange = useCallback((studentId: string, field: keyof TeacherSubjectGrade, value: number | null) => {
+        // Update local state for immediate UI feedback
         setLocalGrades(prev => ({
             ...prev,
             [studentId]: {
@@ -225,7 +227,17 @@ export default function TeacherGradeSheet({ classData, teacher, settings, isRead
                 [field]: value
             }
         }));
-    }, []);
+
+        // Persist to Firebase (this is the auto-save)
+        if (!isReadOnly && activeSubject) {
+            // Find student index in the original unsorted array to get the correct path
+            const studentIndex = (classData.students || []).findIndex(s => s.id === studentId);
+            if (studentIndex !== -1) {
+                const gradePath = `classes/${classData.id}/students/${studentIndex}/teacherGrades/${activeSubject.name}/${field}`;
+                db.ref(gradePath).set(value);
+            }
+        }
+    }, [isReadOnly, activeSubject, classData.id, classData.students]);
 
     const handleAutoAdvance = useCallback((currentInput: HTMLInputElement | null) => {
         if (!currentInput?.form) return;

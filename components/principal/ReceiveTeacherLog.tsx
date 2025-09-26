@@ -102,13 +102,16 @@ export default function ReceiveTeacherLog({ principal, classes, settings, users 
         const subjectName = getSubjectName(classData.id, selectedSubmission.subjectId);
         const classDataWithGrades: ClassData = {
             ...classData,
-            students: (classData.students || []).map((s: Student) => ({
-                ...s,
-                teacherGrades: {
-                    ...s.teacherGrades,
-                    [subjectName]: (selectedSubmission.grades || {})[s.id] || DEFAULT_TEACHER_GRADE,
-                }
-            }))
+            students: (classData.students || []).map((s: Student) => {
+                const submittedGrades = (selectedSubmission.grades || {})[s.id] || {};
+                return {
+                    ...s,
+                    teacherGrades: {
+                        ...s.teacherGrades,
+                        [subjectName]: { ...DEFAULT_TEACHER_GRADE, ...submittedGrades },
+                    }
+                };
+            })
         };
         
         return (
