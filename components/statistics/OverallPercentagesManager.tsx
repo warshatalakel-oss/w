@@ -242,7 +242,7 @@ export default function OverallPercentagesManager({ classes, settings }: { class
                 pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), undefined, 'FAST');
                 setExportProgress(Math.round(((i + 1) / pageComponents.length) * 100));
             }
-            pdf.save(`report_overall_percentages.pdf`);
+            pdf.save('report_overall_percentages.pdf');
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
             alert(`حدث خطأ أثناء التصدير: ${message}`);

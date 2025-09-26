@@ -4,6 +4,7 @@ import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade
 import { GRADE_LEVELS } from '../constants.ts';
 import { calculateStudentResult } from '../lib/gradeCalculator.ts';
 import { Loader2, FileDown, AlertTriangle } from 'lucide-react';
+import OverallPercentagesManager from './statistics/OverallPercentagesManager.tsx';
 
 declare const jspdf: any;
 declare const html2canvas: any;
@@ -116,6 +117,39 @@ const SupplementaryReport: React.FC<{ students: SupplementaryStudent[], classMap
     );
 };
 
+interface DecisionStudent extends Student {
+    classId: string;
+    amountGranted: number;
+    decisionSubjects: { name: string; points: number }[];
+    remainingPoints: number;
+    finalResult: string;
+}
+const DecisionLogReport: React.FC<{ students: DecisionStudent[], classMap: Map<string, ClassData>, settings: SchoolSettings, startingIndex?: number }> = ({ students, classMap, settings, startingIndex = 0 }) => {
+    const headers = ['ت', 'اسم الطالب', 'الصف والشعبة', 'مقدار المنح', 'المواد التي حصل عليها القرار', 'المتبقي', 'النتيجة'];
+    return (
+        <table className="w-full border-collapse border border-black text-lg">
+            <thead className="bg-gray-200">
+                <tr>
+                    {headers.map(h => <th key={h} className="border border-black p-2 font-bold">{h}</th>)}
+                </tr>
+            </thead>
+            <tbody>
+                {students.map((s, i) => (
+                    <tr key={s.id} className="odd:bg-white even:bg-gray-100 h-12">
+                        <td className="border border-black p-2 text-center">{startingIndex + i + 1}</td>
+                        <td className="border border-black p-2 text-right">{s.name}</td>
+                        <td className="border border-black p-2 text-center">{`${classMap.get(s.classId)?.stage} - ${classMap.get(s.classId)?.section}`}</td>
+                        <td className="border border-black p-2 text-center font-bold text-blue-600">{s.amountGranted}</td>
+                        <td className="border border-black p-2 text-center font-semibold text-green-600">{s.decisionSubjects.map(ds => `${ds.name} (${ds.points}+)`).join('، ')}</td>
+                        <td className="border border-black p-2 text-center">{s.remainingPoints}</td>
+                        <td className="border border-black p-2 text-center font-semibold">{s.finalResult}</td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+};
+
 
 // Main Component
 export default function StatisticsManager({ classes, settings }: { classes: ClassData[], settings: SchoolSettings }) {
@@ -170,10 +204,40 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
                             .map(subj => subj.name);
                         return { ...s, failingSubjects };
                     });
+            case 'decision_log':
+                return students
+                    .map(s => {
+                        const res = results.get(s.id);
+                        if (!res) return null;
+
+                        let amountGranted = 0;
+                        const decisionSubjects: { name: string; points: number }[] = [];
+                        const studentClass = classMap.get(s.classId);
+                        
+                        (studentClass?.subjects || []).forEach(subj => {
+                            const gradeInfo = res.finalCalculatedGrades[subj.name];
+                            if (gradeInfo && gradeInfo.decisionApplied > 0) {
+                                amountGranted += gradeInfo.decisionApplied;
+                                decisionSubjects.push({ name: subj.name, points: gradeInfo.decisionApplied });
+                            }
+                        });
+
+                        if (amountGranted > 0) {
+                            return {
+                                ...s,
+                                amountGranted,
+                                decisionSubjects,
+                                remainingPoints: settings.decisionPoints - amountGranted,
+                                finalResult: res.result.status
+                            };
+                        }
+                        return null;
+                    })
+                    .filter((s): s is DecisionStudent => s !== null);
             default:
                 return [];
         }
-    }, [studentResults, activeTab]);
+    }, [studentResults, activeTab, settings.decisionPoints]);
     
     const handleExportPdf = async () => {
         const reportTitle = REPORT_TABS.find(t => t.key === activeTab)?.label || 'تقرير';
@@ -208,6 +272,8 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
                 let reportContent;
                 if (activeTab === 'supplementary') {
                     reportContent = <SupplementaryReport students={pageData as SupplementaryStudent[]} classMap={studentResults.classMap} startingIndex={i * ROWS_PER_PAGE} />;
+                } else if (activeTab === 'decision_log') {
+                    reportContent = <DecisionLogReport students={pageData as DecisionStudent[]} classMap={studentResults.classMap} settings={settings} startingIndex={i * ROWS_PER_PAGE} />;
                 } else {
                     reportContent = <SuccessFailReport students={pageData} classMap={studentResults.classMap} startingIndex={i * ROWS_PER_PAGE}/>;
                 }
@@ -238,6 +304,10 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
     };
     
     const renderContent = () => {
+        if (activeTab === 'overall_percentages') {
+            return <OverallPercentagesManager classes={classes} settings={settings} />;
+        }
+        
         if (selectedClassIds.length === 0) {
             return (
                 <div className="flex items-center justify-center h-64 text-gray-500">
@@ -248,31 +318,22 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
 
         const reportTitleForPreview = REPORT_TABS.find(t => t.key === activeTab)?.label || 'تقرير';
 
-        switch (activeTab) {
-            case 'successful':
-            case 'failing':
-            case 'supplementary':
-                const pageData = filteredData.slice(0, ROWS_PER_PAGE);
-                let reportContent;
-                if (activeTab === 'supplementary') {
-                    reportContent = <SupplementaryReport students={pageData as SupplementaryStudent[]} classMap={studentResults.classMap} />;
-                } else {
-                    reportContent = <SuccessFailReport students={pageData} classMap={studentResults.classMap} />;
-                }
-                 return (
-                    <div className="transform scale-[0.8] origin-top mx-auto">
-                      <ReportPage settings={settings} title={reportTitleForPreview} pageNumber={1} totalPages={Math.ceil(filteredData.length / ROWS_PER_PAGE) || 1}>
-                         {reportContent}
-                      </ReportPage>
-                    </div>
-                 )
-            case 'decision_log':
-                return <UnderMaintenance featureName="سجل إضافات القرار" />;
-            case 'overall_percentages':
-                return <UnderMaintenance featureName="النسب الكلية" />;
-            default:
-                return null;
+        const pageData = filteredData.slice(0, ROWS_PER_PAGE);
+        let reportContent;
+        if (activeTab === 'supplementary') {
+            reportContent = <SupplementaryReport students={pageData as SupplementaryStudent[]} classMap={studentResults.classMap} />;
+        } else if (activeTab === 'decision_log') {
+            reportContent = <DecisionLogReport students={pageData as DecisionStudent[]} classMap={studentResults.classMap} settings={settings} />;
+        } else {
+            reportContent = <SuccessFailReport students={pageData} classMap={studentResults.classMap} />;
         }
+         return (
+            <div className="transform scale-[0.8] origin-top mx-auto">
+              <ReportPage settings={settings} title={reportTitleForPreview} pageNumber={1} totalPages={Math.ceil(filteredData.length / ROWS_PER_PAGE) || 1}>
+                 {reportContent}
+              </ReportPage>
+            </div>
+         )
     };
     
     return (
@@ -285,27 +346,29 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
             )}
             <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-4">الإحصائيات والتقارير</h2>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                    <label className="block text-md font-bold text-gray-700 mb-2">1. اختر المرحلة</label>
-                    <select onChange={e => {setSelectedStage(e.target.value); setSelectedClassIds([]);}} value={selectedStage} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cyan-500 focus:border-cyan-500">
-                        <option value="">-- اختر مرحلة --</option>
-                        {GRADE_LEVELS.map(level => <option key={level} value={level}>{level}</option>)}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-md font-bold text-gray-700 mb-2">2. اختر الشعب</label>
-                    <div className="space-y-2 p-2 border rounded-lg max-h-32 overflow-y-auto">
-                        {selectedStage && classesInSelectedStage.length > 0 ? classesInSelectedStage.map(c => (
-                            <label key={c.id} className="flex items-center gap-3 p-1 rounded-md hover:bg-gray-100 cursor-pointer">
-                                <input type="checkbox" checked={selectedClassIds.includes(c.id)} onChange={() => setSelectedClassIds(prev => prev.includes(c.id) ? prev.filter(id => id !== c.id) : [...prev, c.id])} className="h-5 w-5 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"/>
-                                <span className="font-semibold">{c.stage} - {c.section}</span>
-                                <span className="text-sm text-gray-500">({(c.students || []).length} طالب)</span>
-                            </label>
-                        )) : <p className="text-gray-500 text-center">اختر مرحلة لعرض الشعب.</p>}
+            {activeTab !== 'overall_percentages' && (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label className="block text-md font-bold text-gray-700 mb-2">1. اختر المرحلة</label>
+                        <select onChange={e => {setSelectedStage(e.target.value); setSelectedClassIds([]);}} value={selectedStage} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cyan-500 focus:border-cyan-500">
+                            <option value="">-- اختر مرحلة --</option>
+                            {GRADE_LEVELS.map(level => <option key={level} value={level}>{level}</option>)}
+                        </select>
+                    </div>
+                    <div>
+                        <label className="block text-md font-bold text-gray-700 mb-2">2. اختر الشعب</label>
+                        <div className="space-y-2 p-2 border rounded-lg max-h-32 overflow-y-auto">
+                            {selectedStage && classesInSelectedStage.length > 0 ? classesInSelectedStage.map(c => (
+                                <label key={c.id} className="flex items-center gap-3 p-1 rounded-md hover:bg-gray-100 cursor-pointer">
+                                    <input type="checkbox" checked={selectedClassIds.includes(c.id)} onChange={() => setSelectedClassIds(prev => prev.includes(c.id) ? prev.filter(id => id !== c.id) : [...prev, c.id])} className="h-5 w-5 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"/>
+                                    <span className="font-semibold">{c.stage} - {c.section}</span>
+                                    <span className="text-sm text-gray-500">({(c.students || []).length} طالب)</span>
+                                </label>
+                            )) : <p className="text-gray-500 text-center">اختر مرحلة لعرض الشعب.</p>}
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
             
             <div className="flex items-center justify-between border-b-2 mb-4">
                  <div className="flex flex-wrap gap-1">
@@ -319,10 +382,12 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
                         </button>
                     ))}
                 </div>
-                 <button onClick={handleExportPdf} disabled={isExporting || filteredData.length === 0 || ['decision_log', 'overall_percentages'].includes(activeTab)} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition disabled:bg-gray-400">
-                    <FileDown size={20} />
-                    <span>تصدير PDF</span>
-                </button>
+                {activeTab !== 'overall_percentages' && (
+                     <button onClick={handleExportPdf} disabled={isExporting || filteredData.length === 0} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition disabled:bg-gray-400">
+                        <FileDown size={20} />
+                        <span>تصدير PDF</span>
+                    </button>
+                )}
             </div>
 
             <div className="bg-gray-100 p-4 rounded-lg overflow-x-auto min-h-[400px]">

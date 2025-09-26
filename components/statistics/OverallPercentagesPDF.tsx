@@ -1,5 +1,5 @@
 import React from 'react';
-import type { SchoolSettings } from '../../types';
+import type { SchoolSettings } from '../../types.ts';
 import type { ReportData, StageSubjectStats, StageOverallStats } from './OverallPercentagesManager';
 
 interface OverallPercentagesPDFProps {
