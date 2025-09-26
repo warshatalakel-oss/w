@@ -13,7 +13,7 @@ import GradeSheet from './components/GradeSheet.tsx';
 // import TeacherLogExporter from './components/TeacherLogExporter.tsx'; // Temporarily disabled
 // import AdminLogExporter from './components/AdminLogExporter.tsx'; // Temporarily disabled due to missing gradeCalculator.ts
 import PrincipalDashboard from './components/principal/PrincipalDashboard.tsx';
-// import ReceiveTeacherLog from './components/principal/ReceiveTeacherLog.tsx'; // Temporarily disabled
+import ReceiveTeacherLog from './components/principal/ReceiveTeacherLog.tsx';
 import TeacherGradeSheet from './components/teacher/TeacherGradeSheet.tsx';
 // import ElectronicLogbookGenerator from './components/principal/ElectronicLogbookGenerator.tsx'; // Temporarily disabled due to missing LogbookFormPage
 import GradeBoardExporter from './components/principal/GradeBoardExporter.tsx';
@@ -395,8 +395,8 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                     return <PrincipalDashboard principal={currentUser} classes={principalClasses} users={users} addUser={addUser} updateUser={updateUser} deleteUser={deleteUser} />;
                 case 'absence_manager':
                     return <AbsenceManager principal={currentUser} settings={effectiveSettings} classes={principalClasses} />;
-                // case 'receive_teacher_logs': // Temporarily disabled
-                //     return <ReceiveTeacherLog principal={currentUser} classes={principalClasses} settings={effectiveSettings} />;
+                case 'receive_teacher_logs':
+                    return <ReceiveTeacherLog principal={currentUser} classes={principalClasses} settings={effectiveSettings} users={users} />;
                 case 'electronic_logbook':
                     return <UnderMaintenance featureName="الدفتر الالكتروني" />;
                 case 'promotion_log':
@@ -431,7 +431,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
         { view: 'school_archive', icon: Archive, label: 'ارشيف المدرسة' },
         { view: 'exam_control_log', icon: BookText, label: 'سجل السيطرة الامتحانية' },
         // { view: 'promotion_log', icon: ClipboardList, label: 'سجل الترحيل' }, // Temporarily disabled
-        // { view: 'receive_teacher_logs', icon: ClipboardPaste, label: 'السجلات المستلمة' }, // Temporarily disabled
+        { view: 'receive_teacher_logs', icon: ClipboardPaste, label: 'السجلات المستلمة' },
     ];
     
     const showAboutButton = (isPrincipal && (activeView === 'home' || activeView === 'class_manager')) || 
