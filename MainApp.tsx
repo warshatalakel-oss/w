@@ -27,7 +27,7 @@ import AboutModal from './components/AboutModal.tsx';
 // import PrimaryLogExporter from './components/principal/PrimaryLogExporter.tsx'; // Temporarily disabled
 import AbsenceManager from './components/principal/AbsenceManager.tsx';
 import SchoolArchive from './components/principal/SchoolArchive.tsx';
-// import ExamControlLog from './components/principal/ExamControlLog.tsx'; // Temporarily disabled
+import ExamControlLog from './components/principal/ExamControlLog.tsx';
 // import ParentInvitationExporter from './components/principal/ParentInvitationExporter.tsx'; // Temporarily disabled
 
 
@@ -412,7 +412,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'cover_editor':
                     return <UnderMaintenance featureName="محرر الأغلفة" />;
                 case 'exam_control_log':
-                    return <UnderMaintenance featureName="سجل السيطرة الامتحانية" />;
+                    return <ExamControlLog principal={currentUser} users={users} settings={effectiveSettings} classes={principalClasses} />;
                 case 'school_archive':
                     return <SchoolArchive />;
                 default:
