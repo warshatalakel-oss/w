@@ -5,6 +5,7 @@ import { GRADE_LEVELS } from '../constants.ts';
 import { calculateStudentResult } from '../lib/gradeCalculator.ts';
 import TeacherLogPage from './TeacherLogPage.tsx';
 import { Loader2, FileDown } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 declare const jspdf: any;
 declare const html2canvas: any;
@@ -138,34 +139,97 @@ export default function TeacherLogExporter({ classes, settings }: { classes: Cla
         stats.secondTerm.passRate = calculateRate(stats.secondTerm.passed, stats.secondTerm.total);
         stats.annualPursuit.passRate = calculateRate(stats.annualPursuit.passed, stats.annualPursuit.total);
 
-        const studentChunks = paginateStudents(allStudents);
-        const totalPages = studentChunks.length;
-
         try {
             await document.fonts.ready;
-            for (let i = 0; i < totalPages; i++) {
+            
+            if (allStudents.length <= 25) {
+                const totalPages = 2;
+
+                // Page 1: All students
                 await renderComponent(
                     <TeacherLogPage
                         settings={settings} logos={logos}
                         pageData={{
-                            students: studentChunks[i],
+                            students: allStudents,
                             classInfo: { stage: selectedStage, sections: combinedSections },
                             subjectName: selectedSubject, teacherName
                         }}
                         resultsData={resultsData} stats={stats}
-                        pageNumber={i + 1} totalPages={totalPages}
-                        showSummary={i === totalPages - 1}
-                        maxRows={i === 0 ? 25 : 28}
-                        startingIndex={i === 0 ? 0 : 25 + (i - 1) * 28}
+                        pageNumber={1} totalPages={totalPages}
+                        showSummary={false}
+                        maxRows={25}
+                        startingIndex={0}
                     />
                 );
-                const reportElement = tempContainer.children[0] as HTMLElement;
-                const canvas = await html2canvas(reportElement, { scale: 2, useCORS: true });
-                const imgData = canvas.toDataURL('image/png');
-                if (i > 0) pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), undefined, 'FAST');
-                setExportProgress(Math.round(((i + 1) / totalPages) * 100));
+                const reportElement1 = tempContainer.children[0] as HTMLElement;
+                const canvas1 = await html2canvas(reportElement1, { scale: 2, useCORS: true });
+                const imgData1 = canvas1.toDataURL('image/png');
+                pdf.addImage(imgData1, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), undefined, 'FAST');
+                setExportProgress(50);
+
+                // Page 2: 3 empty rows + summary
+                pdf.addPage();
+                const emptyStudents = Array.from({ length: 3 }, () => ({ id: uuidv4(), name: '', grades: {} } as Student));
+                await renderComponent(
+                    <TeacherLogPage
+                        settings={settings} logos={logos}
+                        pageData={{
+                            students: emptyStudents,
+                            classInfo: { stage: selectedStage, sections: combinedSections },
+                            subjectName: selectedSubject, teacherName
+                        }}
+                        resultsData={resultsData} stats={stats}
+                        pageNumber={2} totalPages={totalPages}
+                        showSummary={true}
+                        maxRows={3}
+                        startingIndex={allStudents.length}
+                    />
+                );
+                const reportElement2 = tempContainer.children[0] as HTMLElement;
+                const canvas2 = await html2canvas(reportElement2, { scale: 2, useCORS: true });
+                const imgData2 = canvas2.toDataURL('image/png');
+                pdf.addImage(imgData2, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), undefined, 'FAST');
+                setExportProgress(100);
+
+            } else { // More than 25 students
+                const studentChunks = paginateStudents(allStudents);
+                const totalPages = studentChunks.length;
+
+                for (let i = 0; i < totalPages; i++) {
+                    const isLastPage = i === totalPages - 1;
+                    let studentsForPage = studentChunks[i];
+                    let maxRowsForPage = i === 0 ? 25 : 28;
+
+                    if (isLastPage) {
+                        const extraRows = Array.from({ length: 2 }, () => ({ id: uuidv4(), name: '', grades: {} } as Student));
+                        studentsForPage = [...studentsForPage, ...extraRows];
+                        maxRowsForPage = studentsForPage.length; // Ensure no more empty rows are added automatically
+                    }
+
+                    await renderComponent(
+                        <TeacherLogPage
+                            settings={settings} logos={logos}
+                            pageData={{
+                                students: studentsForPage,
+                                classInfo: { stage: selectedStage, sections: combinedSections },
+                                subjectName: selectedSubject, teacherName
+                            }}
+                            resultsData={resultsData} stats={stats}
+                            pageNumber={i + 1} totalPages={totalPages}
+                            showSummary={isLastPage}
+                            maxRows={maxRowsForPage}
+                            startingIndex={i === 0 ? 0 : 25 + (i - 1) * 28}
+                        />
+                    );
+                    const reportElement = tempContainer.children[0] as HTMLElement;
+                    const canvas = await html2canvas(reportElement, { scale: 2, useCORS: true });
+                    const imgData = canvas.toDataURL('image/png');
+                    if (i > 0) pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), undefined, 'FAST');
+                    setExportProgress(Math.round(((i + 1) / totalPages) * 100));
+                }
             }
+
             pdf.save(`سجل_مدرس-${selectedStage}-${selectedSubject}.pdf`);
         } catch (error) {
             const message = error instanceof Error ? error.message : String(error);
