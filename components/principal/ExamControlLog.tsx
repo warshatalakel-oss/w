@@ -10,6 +10,7 @@ import SpecializationCommitteesView from './SpecializationCommitteesView.tsx';
 import OralExamScheduleView from './OralExamScheduleView.tsx';
 import WrittenExamScheduleView from './WrittenExamScheduleView.tsx';
 import QuestionsAnswersReceiptView from './QuestionsAnswersReceiptView.tsx';
+import SeatingChartsManager from './SeatingChartsManager.tsx';
 
 interface ExamControlLogProps {
     principal: User;
@@ -38,7 +39,7 @@ type ExamLogPageKey =
 const logTopics = [
     { key: 'cover' as ExamLogPageKey, title: 'غلاف سجل السيطرة' },
     { key: 'minutes' as ExamLogPageKey, title: 'محضر اجتماع الهيئات التعليمية' },
-    { key: 'decision132' as ExamLogPageKey, title: 'القرار ۱۳۲' },
+    { key: 'decision132' as ExamLogPageKey, title: 'القرار ١٣٢' },
     { key: 'signatures' as ExamLogPageKey, title: 'توقيع الهيئات التعليمية على القرار ١٣٢' },
     { key: 'committee' as ExamLogPageKey, title: 'اللجنة الامتحانية واعمالها' },
     { key: 'auditing_committee' as ExamLogPageKey, title: 'لجنة التدقيق واعمالها' },
@@ -175,6 +176,9 @@ export default function ExamControlLog({ principal, users, settings, classes }: 
                 return <WrittenExamScheduleView setCurrentPageKey={setCurrentPageKey} settings={settings} classes={classes} />;
             case 'questions_answers_receipt':
                 return <QuestionsAnswersReceiptView setCurrentPageKey={setCurrentPageKey} settings={settings} classes={classes} />;
+            case 'seating_charts':
+// FIX: Removed unused 'settings' and 'classes' props from the SeatingChartsManager component invocation to resolve the TypeScript error. The component does not require these props.
+                return <SeatingChartsManager setCurrentPageKey={setCurrentPageKey} />;
             default:
                 const topic = logTopics.find(t => t.key === currentPageKey);
                 if (topic) {
