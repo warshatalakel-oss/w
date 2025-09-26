@@ -50,8 +50,9 @@ const ReportPage = React.forwardRef<HTMLDivElement, ReportPageProps>(({ settings
 interface SuccessFailReportProps {
     students: (Student & { classId: string })[];
     classMap: Map<string, ClassData>;
+    startingIndex?: number;
 }
-const SuccessFailReport: React.FC<SuccessFailReportProps> = ({ students, classMap }) => {
+const SuccessFailReport: React.FC<SuccessFailReportProps> = ({ students, classMap, startingIndex = 0 }) => {
     const headers = ['تسلسل', 'اسم الطالب', 'الرقم الامتحاني', 'رقم القيد', 'الشعبة'];
 
     return (
@@ -66,7 +67,7 @@ const SuccessFailReport: React.FC<SuccessFailReportProps> = ({ students, classMa
             <tbody>
                 {students.map((s, i) => (
                     <tr key={s.id} className="odd:bg-white even:bg-gray-100 h-10">
-                        <td className="border border-black p-2 text-center">{i + 1}</td>
+                        <td className="border border-black p-2 text-center">{startingIndex + i + 1}</td>
                         <td className="border border-black p-2 text-right">{s.name}</td>
                         <td className="border border-black p-2 text-center">{s.examId}</td>
                         <td className="border border-black p-2 text-center">{s.registrationId}</td>
@@ -78,11 +79,50 @@ const SuccessFailReport: React.FC<SuccessFailReportProps> = ({ students, classMa
     );
 };
 
+// New type for students with failing subjects
+interface SupplementaryStudent extends Student {
+    classId: string;
+    failingSubjects: string[];
+}
+
+// New component for the supplementary report table
+const SupplementaryReport: React.FC<{
+    students: SupplementaryStudent[],
+    classMap: Map<string, ClassData>,
+    startingIndex?: number
+}> = ({ students, classMap, startingIndex = 0 }) => {
+    const headers = ['تسلسل', 'اسم الطالب', 'الرقم الامتحاني', 'الصف', 'الدروس التي اكمل بها', 'التوقيع'];
+
+    return (
+        <table className="w-full border-collapse border border-black text-lg">
+            <thead className="bg-gray-200">
+                <tr>
+                    {headers.map(h => 
+                        <th key={h} className="border border-black p-2 font-bold">{h}</th>
+                    )}
+                </tr>
+            </thead>
+            <tbody>
+                {students.map((s, i) => (
+                    <tr key={s.id} className="odd:bg-white even:bg-gray-100 h-12">
+                        <td className="border border-black p-2 text-center">{startingIndex + i + 1}</td>
+                        <td className="border border-black p-2 text-right">{s.name}</td>
+                        <td className="border border-black p-2 text-center">{s.examId}</td>
+                        <td className="border border-black p-2 text-center">{classMap.get(s.classId)?.stage}</td>
+                        <td className="border border-black p-2 text-center font-semibold text-red-600">{s.failingSubjects.join('، ')}</td>
+                        <td className="border border-black p-2"></td>
+                    </tr>
+                ))}
+            </tbody>
+        </table>
+    );
+};
+
 
 export default function StatisticsManager({ classes, settings }: { classes: ClassData[], settings: SchoolSettings }) {
     const [selectedStage, setSelectedStage] = useState('');
     const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
-    const [activeTab] = useState<ReportType>('successful');
+    const [activeTab, setActiveTab] = useState<ReportType>('successful');
     const [isExporting, setIsExporting] = useState(false);
     
     const classesInSelectedStage = useMemo(() => {
@@ -110,14 +150,38 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
     }, [selectedClassIds, classes, settings]);
 
     const filteredData = useMemo(() => {
-        const { students, results } = studentResults;
-        return students.filter(s => ['ناجح', 'مؤهل', 'مؤهل بقرار'].includes(results.get(s.id)?.result.status || ''));
-    }, [studentResults]);
+        const { students, results, classMap } = studentResults;
+        switch (activeTab) {
+            case 'successful':
+                return students.filter(s => ['ناجح', 'مؤهل', 'مؤهل بقرار'].includes(results.get(s.id)?.result.status || ''));
+            case 'failing':
+                 return students.filter(s => ['راسب', 'غير مؤهل'].includes(results.get(s.id)?.result.status || ''));
+            case 'supplementary':
+                return students
+                    .filter(s => results.get(s.id)?.result.status === 'مكمل')
+                    .map(s => {
+                        const res = results.get(s.id);
+                        if (!res) return { ...s, failingSubjects: [] };
+                        const studentClass = classMap.get(s.classId);
+                        const failingSubjects = (studentClass?.subjects || [])
+                            .filter(subj => {
+                                const gradeInfo = res.finalCalculatedGrades[subj.name];
+                                return gradeInfo && !gradeInfo.isExempt && gradeInfo.finalGradeWithDecision !== null && gradeInfo.finalGradeWithDecision < 50;
+                            })
+                            .map(subj => subj.name);
+                        return { ...s, failingSubjects };
+                    });
+            default:
+                return [];
+        }
+    }, [studentResults, activeTab]);
     
     const handleExportPdf = async () => {
+        const reportTitle = REPORT_TABS.find(t => t.key === activeTab)?.label || 'تقرير';
         const data = filteredData;
+
         if (data.length === 0) {
-            alert('لا يوجد طلاب ناجحون لتصديرهم.');
+            alert(`لا يوجد طلاب في قائمة "${reportTitle}" لتصديرهم.`);
             return;
         }
 
@@ -133,7 +197,7 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
             setTimeout(resolve, 500);
         });
         
-        const totalPages = Math.ceil(data.length / ROWS_PER_PAGE);
+        const totalPages = Math.ceil(data.length / ROWS_PER_PAGE) || 1;
         const { jsPDF } = jspdf;
         const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
 
@@ -142,9 +206,16 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
             for (let i = 0; i < totalPages; i++) {
                 const pageData = data.slice(i * ROWS_PER_PAGE, (i + 1) * ROWS_PER_PAGE);
                 
+                 let reportContent;
+                if (activeTab === 'supplementary') {
+                    reportContent = <SupplementaryReport students={pageData as SupplementaryStudent[]} classMap={studentResults.classMap} startingIndex={i * ROWS_PER_PAGE} />;
+                } else {
+                    reportContent = <SuccessFailReport students={pageData} classMap={studentResults.classMap} startingIndex={i * ROWS_PER_PAGE}/>;
+                }
+                
                 await renderComponent(
-                    <ReportPage settings={settings} title="الناجحون" pageNumber={i + 1} totalPages={totalPages}>
-                        <SuccessFailReport students={pageData} classMap={studentResults.classMap} />
+                    <ReportPage settings={settings} title={reportTitle} pageNumber={i + 1} totalPages={totalPages}>
+                        {reportContent}
                     </ReportPage>
                 );
 
@@ -155,7 +226,7 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
                 if (i > 0) pdf.addPage();
                 pdf.addImage(imgData, 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight(), undefined, 'FAST');
             }
-            pdf.save(`successful_report_${selectedStage}.pdf`);
+            pdf.save(`${reportTitle}_${selectedStage}.pdf`);
         } catch (error) {
             console.error("PDF Export Error:", error);
             const message = error instanceof Error ? error.message : String(error);
@@ -166,6 +237,8 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
             setIsExporting(false);
         }
     };
+    
+    const reportTitleForPreview = REPORT_TABS.find(t => t.key === activeTab)?.label || 'تقرير';
 
     return (
         <div className="bg-white p-8 rounded-xl shadow-lg">
@@ -175,7 +248,7 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
                     <p className="text-2xl font-bold">جاري التصدير...</p>
                 </div>
             )}
-            <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-4">الأحصائيات والتقارير</h2>
+            <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-4">الإحصائيات والتقارير</h2>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
@@ -202,7 +275,12 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
             <div className="flex items-center justify-between border-b-2 mb-4">
                  <div className="flex flex-wrap gap-1">
                     {REPORT_TABS.map(tab => (
-                        <button key={tab.key} disabled={tab.key !== 'successful'} className={`px-4 py-2 font-semibold rounded-t-lg transition-colors ${activeTab === tab.key ? 'bg-cyan-600 text-white' : 'bg-gray-200'} disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed`}>
+                        <button 
+                            key={tab.key}
+                            onClick={() => setActiveTab(tab.key)}
+                            disabled={!['successful', 'failing', 'supplementary'].includes(tab.key)} 
+                            className={`px-4 py-2 font-semibold rounded-t-lg transition-colors ${activeTab === tab.key ? 'bg-cyan-600 text-white' : 'bg-gray-200'} disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed`}
+                        >
                             {tab.label}
                         </button>
                     ))}
@@ -216,8 +294,12 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
             <div className="bg-gray-100 p-4 rounded-lg overflow-x-auto min-h-[400px]">
                 {selectedClassIds.length > 0 ? (
                     <div className="transform scale-[0.8] origin-top mx-auto">
-                      <ReportPage settings={settings} title="الناجحون" pageNumber={1} totalPages={Math.ceil(filteredData.length / ROWS_PER_PAGE) || 1}>
-                        <SuccessFailReport students={filteredData.slice(0, ROWS_PER_PAGE)} classMap={studentResults.classMap} />
+                      <ReportPage settings={settings} title={reportTitleForPreview} pageNumber={1} totalPages={Math.ceil(filteredData.length / ROWS_PER_PAGE) || 1}>
+                         {activeTab === 'supplementary' ? (
+                            <SupplementaryReport students={filteredData.slice(0, ROWS_PER_PAGE) as SupplementaryStudent[]} classMap={studentResults.classMap} />
+                        ) : (
+                            <SuccessFailReport students={filteredData.slice(0, ROWS_PER_PAGE)} classMap={studentResults.classMap} />
+                        )}
                       </ReportPage>
                     </div>
                 ) : (
