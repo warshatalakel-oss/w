@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import type { ClassData, SchoolSettings, Student, TeacherSubjectGrade } from '../../types';
-import { GRADE_LEVELS } from '../../constants';
+import type { ClassData, SchoolSettings, Student, TeacherSubjectGrade } from '../../types.ts';
+import { GRADE_LEVELS } from '../../constants.ts';
 import { Download, Loader2, Upload, Send } from 'lucide-react';
-import MonthlyResultCardPDF from './MonthlyResultCardPDF';
-import { db } from '../../lib/firebase';
+import MonthlyResultCardPDF from './MonthlyResultCardPDF.tsx';
+import { db } from '../../lib/firebase.ts';
 
 declare const jspdf: any;
 declare const html2canvas: any;
@@ -183,8 +183,17 @@ export default function MonthlyResultsExporter({ classes, settings }: MonthlyRes
                     <div>
                         <label className="block text-md font-bold text-gray-700 mb-2">4. تحميل ختم المدرسة (اختياري)</label>
                         <div className="flex items-center gap-4">
-                            <input type="file" onChange={handleStampChange} accept="image/*" className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"/>
-                            {schoolStamp && <img src={schoolStamp} alt="School Stamp Preview" className="mt-2 h-16 w-16 object-contain rounded-full border p-1" />}
+                             <button
+                                type="button"
+                                onClick={() => document.getElementById('stamp-upload')?.click()}
+                                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md text-sm hover:bg-gray-300"
+                            >
+                                اختیار ملف
+                            </button>
+                            <span className={`text-sm ${schoolStamp ? 'text-green-600' : 'text-gray-500'}`}>
+                                {schoolStamp ? 'تم اختيار أي ملف' : 'لم يتم اختيار أي ملف'}
+                            </span>
+                            <input id="stamp-upload" type="file" onChange={handleStampChange} accept="image/*" className="hidden" />
                         </div>
                     </div>
                 </div>

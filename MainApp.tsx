@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Settings from './components/Settings.tsx';
 import ClassManager from './components/ClassManager.tsx';
 import GradeSheet from './components/GradeSheet.tsx';
-// import ExportManager from './components/ExportManager.tsx'; // Temporarily disabled due to missing gradeCalculator.ts
+import MonthlyResultsExporter from './components/principal/MonthlyResultsExporter.tsx';
 import StatisticsManager from './components/StatisticsManager.tsx';
 import TeacherLogExporter from './components/TeacherLogExporter.tsx';
 import AdminLogExporter from './components/AdminLogExporter.tsx';
@@ -297,7 +297,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
     ];
 
     const reportNavItems: NavItem[] = [
-        // { view: 'export_results', icon: Printer, label: 'النتائج الامتحانية' }, // Temporarily disabled
+        { view: 'export_results', icon: Printer, label: 'النتائج الشهرية' },
         { view: 'statistics', icon: BarChart, label: 'التقارير والإحصاءات' },
         { view: 'teacher_log_exporter', icon: ClipboardList, label: 'سجل المدرس' },
         { view: 'admin_log_exporter', icon: Archive, label: 'السجل العام' },
@@ -382,7 +382,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 // case 'parent_invitations': // Temporarily disabled
                 //     return <ParentInvitationExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'export_results':
-                     return <UnderMaintenance featureName="تصدير النتائج" />;
+                     return <MonthlyResultsExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'statistics':
                     return <StatisticsManager classes={principalClasses} settings={effectiveSettings} />;
                 case 'teacher_log_exporter':
@@ -485,6 +485,9 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                                         }
                                         if (item.view === 'primary_school_log') {
                                             isDisabled = effectiveSettings.schoolLevel !== 'ابتدائية';
+                                        }
+                                        if (item.view === 'export_results') {
+                                            isDisabled = effectiveSettings.schoolLevel === 'ابتدائية';
                                         }
                                         return <NavButton key={item.view} item={item} isCollapsed={isSidebarCollapsed} onClick={() => handleNavClick(item.view)} isActive={activeView === item.view} disabled={isDisabled} />
                                     })}

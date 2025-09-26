@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Student, ClassData, SchoolSettings, TeacherSubjectGrade } from '../../types';
+import type { Student, ClassData, SchoolSettings, TeacherSubjectGrade } from '../../types.ts';
 
 interface MonthlyResultCardPDFProps {
     student: Student;
@@ -87,7 +87,7 @@ export default function MonthlyResultCardPDF({ student, classData, settings, sel
                 <div className="w-1/3"></div>
                 <div className="w-1/3 flex justify-center items-center">
                     {schoolStamp && (
-                        <div className="w-40 h-32 flex items-center justify-center border-2 border-green-500 rounded-[50%] p-2">
+                        <div className="w-40 h-32 flex items-center justify-center">
                              <img src={schoolStamp} alt="School Stamp" className="max-w-full max-h-full object-contain" />
                         </div>
                     )}
