@@ -114,6 +114,7 @@ const GradeInput: React.FC<{
 export default function TeacherGradeSheet({ classData, teacher, settings, isReadOnly = false, subjectId: readOnlySubjectId }: TeacherGradeSheetProps) {
     const [submissions, setSubmissions] = useState<TeacherSubmission[]>([]);
     const [localGrades, setLocalGrades] = useState<Record<string, TeacherSubjectGrade>>({});
+    const [isExporting, setIsExporting] = useState(false);
 
     const isPrimary = settings.schoolLevel === 'ابتدائية';
     const isPrimary1_4 = isPrimary && ['الاول ابتدائي', 'الثاني ابتدائي', 'الثالث ابتدائي', 'الرابع ابتدائي'].includes(classData.stage);
@@ -263,11 +264,74 @@ export default function TeacherGradeSheet({ classData, teacher, settings, isRead
         }
     };
 
+    const handleExportPdf = async () => {
+        if (!activeSubject) return;
+        setIsExporting(true);
+
+        const tempContainer = document.createElement('div');
+        Object.assign(tempContainer.style, { position: 'absolute', left: '-9999px', top: '0' });
+        document.body.appendChild(tempContainer);
+        const root = ReactDOM.createRoot(tempContainer);
+
+        const renderComponent = (component: React.ReactElement) => new Promise<void>(resolve => {
+            root.render(component);
+            setTimeout(resolve, 500);
+        });
+
+        const studentsWithLocalGrades = sortedStudents.map(s => ({
+            ...s,
+            teacherGrades: {
+                ...s.teacherGrades,
+                [activeSubject.name]: localGrades[s.id] || DEFAULT_TEACHER_GRADE,
+            }
+        }));
+
+        const MAX_ROWS_PER_PAGE = 23;
+        const studentChunks = [];
+        for (let i = 0; i < studentsWithLocalGrades.length; i += MAX_ROWS_PER_PAGE) {
+            studentChunks.push(studentsWithLocalGrades.slice(i, i + MAX_ROWS_PER_PAGE));
+        }
+
+        try {
+            const { jsPDF } = jspdf;
+            const pdf = new jsPDF('p', 'mm', 'a4');
+
+            for (let i = 0; i < studentChunks.length; i++) {
+                await renderComponent(
+                    <TeacherGradeSheetPDF
+                        students={studentChunks[i]}
+                        classData={classData}
+                        subject={activeSubject}
+                        teacherName={teacher.name}
+                        settings={settings}
+                        pageNumber={i + 1}
+                        totalPages={studentChunks.length}
+                        startingIndex={i * MAX_ROWS_PER_PAGE}
+                        isPrimary1_4={isPrimary1_4}
+                        isPrimary5_6={isPrimary5_6}
+                    />
+                );
+                const pageElement = tempContainer.children[0] as HTMLElement;
+                const canvas = await html2canvas(pageElement, { scale: 2 });
+                if (i > 0) pdf.addPage();
+                pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pdf.internal.pageSize.getWidth(), pdf.internal.pageSize.getHeight());
+            }
+
+            pdf.save(`سجل-${activeSubject.name}-${classData.stage}-${classData.section}.pdf`);
+        } catch (error) {
+            console.error(error);
+            alert("فشل تصدير PDF.");
+        } finally {
+            root.unmount();
+            document.body.removeChild(tempContainer);
+            setIsExporting(false);
+        }
+    };
+
     if (!activeSubject) {
         return <div className="p-4 text-center">لم يتم تعيين مادة لهذا الصف.</div>;
     }
     
-    // FIX: Use `a.submittedAt` instead of non-existent `createdAt`
     const lastSubmissionDate = submissions
         .filter(s => s.classId === classData.id && s.subjectId === activeSubject.id)
         .sort((a,b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
@@ -282,8 +346,16 @@ export default function TeacherGradeSheet({ classData, teacher, settings, isRead
                     </h2>
                     <p className="text-lg font-semibold text-cyan-700 mt-1">المادة: {activeSubject.name}</p>
                 </div>
-                {!isReadOnly && (
-                    <div className="flex gap-2 mt-2 sm:mt-0">
+                <div className="flex gap-2 mt-2 sm:mt-0">
+                    <button 
+                        onClick={handleExportPdf}
+                        disabled={isExporting}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
+                    >
+                        <Download size={20} />
+                        <span>تصدير PDF</span>
+                    </button>
+                    {!isReadOnly && (
                         <button 
                             onClick={handleSubmit} 
                             className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700"
@@ -291,8 +363,8 @@ export default function TeacherGradeSheet({ classData, teacher, settings, isRead
                             <Send size={20} />
                             <span>إرسال للإدارة</span>
                         </button>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
              {lastSubmissionDate && !isReadOnly && (
                 <div className="mb-4 p-3 bg-blue-50 border-l-4 border-blue-400 text-blue-800 rounded-md">

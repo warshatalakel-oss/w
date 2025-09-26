@@ -43,7 +43,7 @@ const calculateGradesForPrimary = (grade: TeacherSubjectGrade) => {
 
     let primaryFirstTerm: number | null = null;
     const firstTermMonths = [october, november, december, january];
-    if (firstTermMonths.every(isValidGrade)) {
+     if (firstTermMonths.every(isValidGrade)) {
         primaryFirstTerm = Math.round((october! + november! + december! + january!) / 4);
     }
 
@@ -82,7 +82,7 @@ export default function TeacherGradeSheetPDF({ students, classData, subject, tea
     const studentLabel = settings.schoolLevel === 'ابتدائية' ? 'التلميذ' : 'الطالب';
 
     const formatGradeForPdf = (gradeValue: number | null, schoolGender: string | undefined): string | number => {
-        if (gradeValue === null) return '';
+        if (gradeValue === null || gradeValue === undefined) return '';
         if (gradeValue === -1) return schoolGender === 'بنات' ? 'غائبة' : 'غائب';
         if (gradeValue === -2) return schoolGender === 'بنات' ? 'مجازة' : 'مجاز';
         return gradeValue;
