@@ -3,6 +3,7 @@ import type { User, SchoolSettings, ClassData } from '../../types.ts';
 import { Settings, Map as MapIcon } from 'lucide-react';
 import MinutesView from './MinutesView.tsx';
 import Decision132View from './Decision132View.tsx';
+import SignaturesView from './SignaturesView.tsx';
 
 interface ExamControlLogProps {
     principal: User;
@@ -81,25 +82,28 @@ const IndexView = ({ setCurrentPageKey }: { setCurrentPageKey: (key: ExamLogPage
     </div>
 );
 
-const PageWrapper = ({ title, children, setCurrentPageKey, currentPageKey }: { title: string, children?: React.ReactNode, setCurrentPageKey: (key: ExamLogPageKey) => void, currentPageKey: ExamLogPageKey }) => {
-    const handleNext = () => {
+const PageWrapper = ({ title, children, setCurrentPageKey, currentPageKey, onNext, onPrev }: { title: string, children?: React.ReactNode, setCurrentPageKey: (key: ExamLogPageKey) => void, currentPageKey: ExamLogPageKey, onNext?: () => void, onPrev?: () => void }) => {
+    
+    const handleNavigation = (direction: 'next' | 'prev') => {
         const currentIndex = logTopics.findIndex(p => p.key === currentPageKey);
-        if (currentIndex !== -1 && currentIndex < logTopics.length - 1) {
-            const nextKey = logTopics[currentIndex + 1].key;
-            if (nextKey) {
-                setCurrentPageKey(nextKey);
-                return;
+        if (currentIndex === -1) return;
+
+        const newIndex = direction === 'next' ? currentIndex + 1 : currentIndex - 1;
+
+        if (newIndex >= 0 && newIndex < logTopics.length) {
+            const newKey = logTopics[newIndex].key;
+            if (newKey) {
+                setCurrentPageKey(newKey);
             }
         }
-        alert('هذه آخر صفحة معرفة حالياً.');
     };
-
+    
     return (
         <div className="bg-white p-8 rounded-xl shadow-lg">
             <div className="flex justify-between items-center mb-6">
-                <button onClick={() => setCurrentPageKey('index')} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">&larr; العودة للفهرس</button>
+                <button onClick={() => handleNavigation('prev')} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">&larr; الصفحة السابقة</button>
                 <h2 className="text-3xl font-bold text-gray-800">{title}</h2>
-                <button onClick={handleNext} className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">الصفحة التالية &rarr;</button>
+                <button onClick={() => handleNavigation('next')} className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">الصفحة التالية &rarr;</button>
             </div>
             {children}
         </div>
@@ -151,6 +155,8 @@ export default function ExamControlLog({ principal, users, settings, classes }: 
                 return <MinutesView setCurrentPageKey={setCurrentPageKey} settings={settings} users={users} />;
             case 'decision132':
                 return <Decision132View setCurrentPageKey={setCurrentPageKey} settings={settings} />;
+            case 'signatures':
+                return <SignaturesView setCurrentPageKey={setCurrentPageKey} settings={settings} users={users} />;
             default:
                 const topic = logTopics.find(t => t.key === currentPageKey);
                 if (topic) {
