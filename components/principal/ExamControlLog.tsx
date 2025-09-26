@@ -4,6 +4,7 @@ import { Settings, Map as MapIcon } from 'lucide-react';
 import MinutesView from './MinutesView.tsx';
 import Decision132View from './Decision132View.tsx';
 import SignaturesView from './SignaturesView.tsx';
+import ExamCommitteeView from './ExamCommitteeView.tsx';
 
 interface ExamControlLogProps {
     principal: User;
@@ -157,6 +158,8 @@ export default function ExamControlLog({ principal, users, settings, classes }: 
                 return <Decision132View setCurrentPageKey={setCurrentPageKey} settings={settings} />;
             case 'signatures':
                 return <SignaturesView setCurrentPageKey={setCurrentPageKey} settings={settings} users={users} />;
+            case 'committee':
+                return <ExamCommitteeView setCurrentPageKey={setCurrentPageKey} settings={settings} users={users} />;
             default:
                 const topic = logTopics.find(t => t.key === currentPageKey);
                 if (topic) {
