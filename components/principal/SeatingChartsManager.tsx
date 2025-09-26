@@ -2,7 +2,8 @@ import React from 'react';
 import { Map as MapIcon } from 'lucide-react';
 
 interface SeatingChartsManagerProps {
-    setCurrentPageKey: (key: string) => void;
+    // FIX: Changed prop type from (key: string) => void to (key: any) => void to match the passed React state setter function.
+    setCurrentPageKey: (key: any) => void;
 }
 
 const PageWrapper = ({ title, children, onPrev, onNext }: { title: string, children?: React.ReactNode, onPrev: () => void, onNext: () => void }) => (

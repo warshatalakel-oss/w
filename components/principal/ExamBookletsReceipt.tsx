@@ -12,7 +12,8 @@ declare const html2canvas: any;
 
 interface ExamBookletsReceiptProps {
     settings: SchoolSettings;
-    setCurrentPageKey: (key: string) => void;
+    // FIX: Changed prop type from (key: string) => void to (key: any) => void to match the passed React state setter function.
+    setCurrentPageKey: (key: any) => void;
 }
 
 interface StudentCounts {
@@ -164,35 +165,6 @@ export default function ExamBookletsReceipt({ settings, setCurrentPageKey }: Exa
         }
     };
 
-    const renderHallForm = (hall: HallData, isLastHall: boolean) => (
-        <div key={hall.id} className="p-4 bg-gray-50 rounded-lg border-l-4 border-cyan-500 relative">
-            <div className="flex justify-between items-center mb-2">
-                <h3 className="text-xl font-bold text-gray-700">القاعة رقم: {hall.hallNumber}</h3>
-                <button onClick={() => handleRemoveHall(hall.id)} className="p-1 text-red-500 hover:bg-red-100 rounded-full">
-                    <Trash2 size={18} />
-                </button>
-            </div>
-            <div className="space-y-4">
-                {hall.sectors.map((sector, index) => (
-                    <div key={sector.id} className="p-3 bg-white rounded-md border shadow-sm relative">
-                         <h4 className="font-semibold text-cyan-800">القطاع رقم: {sector.sectorNumber}</h4>
-                         {isLastHall && index === 1 && (
-                             <button onClick={() => handleRemoveSecondSector(hall.id)} className="absolute top-2 left-2 p-1 text-xs text-gray-500 hover:text-red-600 border rounded-md">
-                                حذف القطاع الثاني
-                             </button>
-                         )}
-                         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-2">
-                             <input type="text" placeholder="اسم المراقب" value={sector.invigilatorName} onChange={e => handleHallDataChange(hall.id, sector.id, 'invigilatorName', e.target.value)} className="md:col-span-1 p-2 border rounded-md" />
-                             <input type="number" placeholder="عدد طلاب الأول" value={sector.studentCounts.first} onChange={e => handleHallDataChange(hall.id, sector.id, 'first', e.target.value)} className="p-2 border rounded-md" />
-                             <input type="number" placeholder="عدد طلاب الثاني" value={sector.studentCounts.second} onChange={e => handleHallDataChange(hall.id, sector.id, 'second', e.target.value)} className="p-2 border rounded-md" />
-                             <input type="number" placeholder="عدد طلاب الثالث" value={sector.studentCounts.third} onChange={e => handleHallDataChange(hall.id, sector.id, 'third', e.target.value)} className="p-2 border rounded-md" />
-                         </div>
-                    </div>
-                ))}
-            </div>
-        </div>
-    );
-
     if (!stage) {
         return (
              <PageWrapper
@@ -261,4 +233,35 @@ export default function ExamBookletsReceipt({ settings, setCurrentPageKey }: Exa
             </div>
         </PageWrapper>
     );
+
+    function renderHallForm(hall: HallData, isLastHall: boolean): React.ReactNode {
+        return (
+            <div key={hall.id} className="p-4 bg-gray-50 rounded-lg border-l-4 border-cyan-500 relative">
+                <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-xl font-bold text-gray-700">القاعة رقم: {hall.hallNumber}</h3>
+                    <button onClick={() => handleRemoveHall(hall.id)} className="p-1 text-red-500 hover:bg-red-100 rounded-full">
+                        <Trash2 size={18} />
+                    </button>
+                </div>
+                <div className="space-y-4">
+                    {hall.sectors.map((sector, index) => (
+                        <div key={sector.id} className="p-3 bg-white rounded-md border shadow-sm relative">
+                            <h4 className="font-semibold text-cyan-800">القطاع رقم: {sector.sectorNumber}</h4>
+                            {isLastHall && index === 1 && (
+                                <button onClick={() => handleRemoveSecondSector(hall.id)} className="absolute top-2 left-2 p-1 text-xs text-gray-500 hover:text-red-600 border rounded-md">
+                                    حذف القطاع الثاني
+                                </button>
+                            )}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mt-2">
+                                <input type="text" placeholder="اسم المراقب" value={sector.invigilatorName} onChange={e => handleHallDataChange(hall.id, sector.id, 'invigilatorName', e.target.value)} className="md:col-span-1 p-2 border rounded-md" />
+                                <input type="number" placeholder="عدد طلاب الأول" value={sector.studentCounts.first} onChange={e => handleHallDataChange(hall.id, sector.id, 'first', e.target.value)} className="p-2 border rounded-md" />
+                                <input type="number" placeholder="عدد طلاب الثاني" value={sector.studentCounts.second} onChange={e => handleHallDataChange(hall.id, sector.id, 'second', e.target.value)} className="p-2 border rounded-md" />
+                                <input type="number" placeholder="عدد طلاب الثالث" value={sector.studentCounts.third} onChange={e => handleHallDataChange(hall.id, sector.id, 'third', e.target.value)} className="p-2 border rounded-md" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 }

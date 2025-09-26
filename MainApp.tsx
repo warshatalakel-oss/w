@@ -21,7 +21,7 @@ import OralExamListsExporter from './components/principal/OralExamListsExporter.
 // import PromotionLog from './components/principal/PromotionLog.tsx'; // Temporarily disabled, component missing
 import AboutModal from './components/AboutModal.tsx';
 import ExamHallsManager from './components/principal/ExamHallsManager.tsx';
-// import CoverEditor from './components/principal/CoverEditor.tsx';
+import CoverEditor from './components/principal/CoverEditor.tsx';
 // import ExamCardsExporter from './components/principal/ExamCardsExporter.tsx';
 import AdministrativeCorrespondence from './components/principal/AdministrativeCorrespondence.tsx';
 // import PrimaryLogExporter from './components/principal/PrimaryLogExporter.tsx'; // Temporarily disabled
@@ -410,7 +410,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'exam_halls':
                     return <ExamHallsManager />;
                 case 'cover_editor':
-                    return <UnderMaintenance featureName="محرر الأغلفة" />;
+                    return <CoverEditor />;
                 case 'exam_control_log':
                     return <ExamControlLog principal={currentUser} users={users} settings={effectiveSettings} classes={principalClasses} />;
                 case 'school_archive':

@@ -13,7 +13,8 @@ export interface TableRowData {
 }
 
 interface AbsenceDraftExporterProps {
-    setCurrentPageKey: (key: string) => void;
+    // FIX: Changed prop type from (key: string) => void to (key: any) => void to match the passed React state setter function.
+    setCurrentPageKey: (key: any) => void;
     settings: SchoolSettings;
 }
 
