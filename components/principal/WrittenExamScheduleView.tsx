@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import useLocalStorage from '../../hooks/useLocalStorage';
-import type { SchoolSettings, ClassData } from '../../types';
+import useLocalStorage from '../../hooks/useLocalStorage.ts';
+import type { SchoolSettings, ClassData } from '../../types.ts';
 import { Printer, Upload, BarChart2, Loader2 } from 'lucide-react';
-import WrittenExamSchedulePDF from './WrittenExamSchedulePDF';
+import WrittenExamSchedulePDF from './WrittenExamSchedulePDF.tsx';
 
 declare const jspdf: any;
 declare const html2canvas: any;

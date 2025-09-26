@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import type { SchoolSettings } from '../../types';
+import type { SchoolSettings } from '../../types.ts';
 import { Building, PlusCircle, Trash2, Eye, FileDown, Loader2 } from 'lucide-react';
 import { v4 as uuidv4 } from 'uuid';
 import ExamBookletBeforePage from './ExamBookletBeforePage.tsx';
 import ExamBookletAfterPage from './ExamBookletAfterPage.tsx';
-import useLocalStorage from '../../hooks/useLocalStorage';
+import useLocalStorage from '../../hooks/useLocalStorage.ts';
 
 declare const jspdf: any;
 declare const html2canvas: any;

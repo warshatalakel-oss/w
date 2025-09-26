@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import useLocalStorage from '../../hooks/useLocalStorage';
+import useLocalStorage from '../../hooks/useLocalStorage.ts';
 import { Download, Printer, Loader2, Trash2, UserPlus, ArrowUpCircle, Map as MapIcon } from 'lucide-react';
-import type { User, SchoolSettings, ClassData } from '../../types';
+import type { User, SchoolSettings, ClassData } from '../../types.ts';
 import WrittenExamScheduleView from './WrittenExamScheduleView.tsx';
 import QuestionsAnswersReceiptView from './QuestionsAnswersReceiptView.tsx';
 import AbsenceDraftExporter from './AbsenceDraftExporter.tsx';
@@ -1228,6 +1228,11 @@ const OralExamScheduleView = ({ setCurrentPageKey, settings, classes }: { setCur
     
     const liftStyle: React.CSSProperties = { position: 'relative', bottom: '7px' };
 
+    // FIX: Define LiftedText component to fix reference error.
+    const LiftedText: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+        <div style={liftStyle}>{children}</div>
+    );
+
     return (
         <PageWrapper title="جدول الامتحانات الشفوية" setCurrentPageKey={setCurrentPageKey} currentPageKey="oral_exam_schedule">
             <div className="flex justify-between items-center mb-4">
@@ -1259,9 +1264,9 @@ const OralExamScheduleView = ({ setCurrentPageKey, settings, classes }: { setCur
                                 <table className="w-full border-collapse border-2 border-black">
                                     <thead className="text-2xl font-bold">
                                         <tr>
-                                            <th className="border-2 border-black p-2 bg-yellow-300 w-[40%]">اليوم والتاريخ</th>
-                                            <th className="border-2 border-black p-2 bg-yellow-300 w-[40%]">{stage}</th>
-                                            <th className="border-2 border-black p-2 bg-yellow-300 w-[20%]"></th>
+                                            <th className="border-2 border-black p-3 w-[40%]"><LiftedText>اليوم والتاريخ</LiftedText></th>
+                                            <th className="border-2 border-black p-3 w-[40%]">{stage}</th>
+                                            <th className="border-2 border-black p-3 w-[20%]"></th>
                                         </tr>
                                     </thead>
                                     <tbody className="text-xl">
