@@ -11,7 +11,7 @@ import GradeSheet from './components/GradeSheet.tsx';
 // import ExportManager from './components/ExportManager.tsx'; // Temporarily disabled due to missing gradeCalculator.ts
 import StatisticsManager from './components/StatisticsManager.tsx';
 import TeacherLogExporter from './components/TeacherLogExporter.tsx';
-// import AdminLogExporter from './components/AdminLogExporter.tsx'; // Temporarily disabled due to missing gradeCalculator.ts
+import AdminLogExporter from './components/AdminLogExporter.tsx';
 import PrincipalDashboard from './components/principal/PrincipalDashboard.tsx';
 import ReceiveTeacherLog from './components/principal/ReceiveTeacherLog.tsx';
 import TeacherGradeSheet from './components/teacher/TeacherGradeSheet.tsx';
@@ -300,7 +300,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
         // { view: 'export_results', icon: Printer, label: 'النتائج الامتحانية' }, // Temporarily disabled
         { view: 'statistics', icon: BarChart, label: 'التقارير والإحصاءات' },
         { view: 'teacher_log_exporter', icon: ClipboardList, label: 'سجل المدرس' },
-        // { view: 'admin_log_exporter', icon: Archive, label: 'السجل العام' }, // Temporarily disabled
+        { view: 'admin_log_exporter', icon: Archive, label: 'السجل العام' },
         { view: 'primary_school_log', icon: BookText, label: 'درجات الابتدائية' },
     ];
     
@@ -388,7 +388,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'teacher_log_exporter':
                     return <TeacherLogExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'admin_log_exporter':
-                    return <UnderMaintenance featureName="السجل العام" />;
+                    return <AdminLogExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'primary_school_log':
                     return <UnderMaintenance featureName="درجات الابتدائية" />;
                 case 'principal_dashboard':

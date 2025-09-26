@@ -29,6 +29,8 @@ export default function AdminLogExporter({ classes, settings }: { classes: Class
                 setLogos(prev => ({ ...prev, [type]: event.target?.result as string }));
             };
             reader.readAsDataURL(file);
+        } else {
+             setLogos(prev => ({ ...prev, [type]: null }));
         }
     };
     
@@ -44,7 +46,8 @@ export default function AdminLogExporter({ classes, settings }: { classes: Class
                     if (!isNaN(numA) && !isNaN(numB)) {
                         return numA - numB;
                     }
-                    return aId.localeCompare(bId, undefined, { numeric: true });
+                    // Fallback to name sort if examId is not numeric or consistent
+                    return a.name.localeCompare(b.name, 'ar');
                 });
                 return sortedStudents.map(s => ({ student: s, classData: c }))
             });
@@ -111,39 +114,14 @@ export default function AdminLogExporter({ classes, settings }: { classes: Class
                 const canvas = await html2canvas(reportElement, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
                 const imgData = canvas.toDataURL('image/png');
                 
-                const TOP_MARGIN_MM = 5;
-                const HORIZONTAL_MARGIN_MM = 13;
-                const BOTTOM_MARGIN_MM = 5; // 0.5cm
-
-                const a4Width = pdf.internal.pageSize.getWidth();
-                const a4Height = pdf.internal.pageSize.getHeight();
-
-                const availableWidth = a4Width - (HORIZONTAL_MARGIN_MM * 2);
-                const availableHeight = a4Height - TOP_MARGIN_MM - BOTTOM_MARGIN_MM;
-                
-                const canvasAspectRatio = canvas.width / canvas.height;
-
-                let imgWidth, imgHeight;
-
-                // Force scale to fill available height to strictly respect top/bottom margins
-                imgHeight = availableHeight;
-                imgWidth = imgHeight * canvasAspectRatio;
-
-                // If it becomes too wide, then scale down to fit width, which will make it shorter than availableHeight
-                if (imgWidth > availableWidth) {
-                    imgWidth = availableWidth;
-                    imgHeight = imgWidth / canvasAspectRatio;
-                }
-
-                // Center horizontally within the margins
-                const xPos = HORIZONTAL_MARGIN_MM + (availableWidth - imgWidth) / 2;
-                const yPos = TOP_MARGIN_MM;
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
                 
                 if (i > 0) pdf.addPage();
-                pdf.addImage(imgData, 'PNG', xPos, yPos, imgWidth, imgHeight, undefined, 'FAST');
+                pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
                 setExportProgress(Math.round(((i + 1) / studentsToExport.length) * 100));
             }
-            pdf.save(`سجل_الادارة-${selectedStage}.pdf`);
+            pdf.save(`السجل_العام-${selectedStage}.pdf`);
         } catch (error) {
             console.error("PDF Export Error:", error);
             const message = error instanceof Error ? error.message : String(error);
@@ -155,6 +133,25 @@ export default function AdminLogExporter({ classes, settings }: { classes: Class
             setExportProgress(0);
         }
     };
+
+    const FileInput = ({ label, onChange, type }: { label: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void, type: 'ministry' | 'school' }) => (
+        <div className="text-center">
+            <label className="text-md font-semibold text-gray-700">{label}</label>
+            <div className="mt-2 flex justify-center items-center gap-2">
+                <button
+                    type="button"
+                    onClick={() => { const el = document.getElementById(`logo-upload-${type}`); if (el) el.click(); }}
+                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md text-sm hover:bg-gray-300"
+                >
+                    اختیار ملف
+                </button>
+                <span className={`text-sm ${logos[type] ? 'text-green-600' : 'text-gray-500'}`}>
+                    {logos[type] ? 'تم رفع الملف' : 'لم يتم اختيار أي ملف'}
+                </span>
+            </div>
+            <input id={`logo-upload-${type}`} type="file" onChange={onChange} accept="image/*" className="hidden" />
+        </div>
+    );
 
     return (
         <div className="bg-white p-8 rounded-xl shadow-lg max-w-5xl mx-auto">
@@ -169,72 +166,60 @@ export default function AdminLogExporter({ classes, settings }: { classes: Class
                 </div>
             )}
 
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-6">
-                    <div>
+             <div className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                     <div>
                         <label className="block text-md font-bold text-gray-700 mb-2">1. اختر المرحلة الدراسية</label>
                         <select onChange={e => { setSelectedStage(e.target.value); setSelectedClassIds([]); }} value={selectedStage} className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-cyan-500 focus:border-cyan-500">
                             <option value="">-- اختر مرحلة --</option>
                             {GRADE_LEVELS.map(level => <option key={level} value={level}>{level}</option>)}
                         </select>
                     </div>
-
-                     {selectedStage && (
-                        <div>
-                            <label className="block text-md font-bold text-gray-700 mb-2">2. اختر الشعبة (أو الشعب)</label>
-                            <div className="space-y-2 max-h-48 overflow-y-auto p-2 border rounded-lg">
-                                {classesInSelectedStage.length > 0 ? classesInSelectedStage.map(c => (
-                                    <label key={c.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-100 cursor-pointer">
-                                        <input type="checkbox" checked={selectedClassIds.includes(c.id)} onChange={() => {setSelectedClassIds(prev => prev.includes(c.id) ? prev.filter(id => id !== c.id) : [...prev, c.id]);}} className="h-5 w-5 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"/>
-                                        <span className="font-semibold">{c.stage} - {c.section}</span>
-                                        <span className="text-sm text-gray-500">({(c.students || []).length} طالب)</span>
-                                    </label>
-                                )) : <p className="text-gray-500">لا توجد شعب لهذه المرحلة.</p>}
-                            </div>
-                        </div>
-                    )}
                      <div>
-                        <label className="block text-md font-bold text-gray-700 mb-2">3. خيارات التصدير</label>
-                        <div className="flex gap-4 p-2 bg-gray-100 rounded-lg">
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="exportType"
-                                    checked={exportWithGrades}
-                                    onChange={() => setExportWithGrades(true)}
-                                    className="h-5 w-5 text-cyan-600 focus:ring-cyan-500"
-                                />
-                                <span className="font-semibold">مع الدرجات والنتيجة</span>
-                            </label>
-                            <label className="flex items-center gap-2 cursor-pointer">
-                                <input
-                                    type="radio"
-                                    name="exportType"
-                                    checked={!exportWithGrades}
-                                    onChange={() => setExportWithGrades(false)}
-                                    className="h-5 w-5 text-cyan-600 focus:ring-cyan-500"
-                                />
-                                <span className="font-semibold">خالي من الدرجات</span>
-                            </label>
+                        <label className="block text-md font-bold text-gray-700 mb-2">2. اختر الشعبة (أو الشعب)</label>
+                        <div className="space-y-2 max-h-48 overflow-y-auto p-2 border rounded-lg bg-gray-50">
+                            {selectedStage && classesInSelectedStage.length > 0 ? classesInSelectedStage.map(c => (
+                                <label key={c.id} className="flex items-center gap-3 p-2 rounded-md hover:bg-gray-100 cursor-pointer">
+                                    <input type="checkbox" checked={selectedClassIds.includes(c.id)} onChange={() => {setSelectedClassIds(prev => prev.includes(c.id) ? prev.filter(id => id !== c.id) : [...prev, c.id]);}} className="h-5 w-5 rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"/>
+                                    <span className="font-semibold">{c.stage} - {c.section}</span>
+                                    <span className="text-sm text-gray-500">({(c.students || []).length} طالب)</span>
+                                </label>
+                            )) : <p className="text-gray-500 text-center">اختر مرحلة لعرض الشعب</p>}
                         </div>
                     </div>
                 </div>
 
-                <div className="space-y-6">
-                    <div>
-                        <label className="block text-md font-bold text-gray-700 mb-2">4. اختر الشعارات (اختياري)</label>
-                        <div className="grid grid-cols-2 gap-4">
-                            <div>
-                                <label className="text-sm font-medium text-gray-600">شعار الوزارة</label>
-                                <input type="file" onChange={e => handleLogoChange(e, 'ministry')} accept="image/*" className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"/>
-                                {logos.ministry && <img src={logos.ministry} alt="Ministry Logo Preview" className="mt-2 h-16 w-16 object-contain rounded-full border p-1" />}
-                            </div>
-                             <div>
-                                <label className="text-sm font-medium text-gray-600">شعار المدرسة</label>
-                                <input type="file" onChange={e => handleLogoChange(e, 'school')} accept="image/*" className="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-gray-50 file:text-gray-700 hover:file:bg-gray-100"/>
-                                {logos.school && <img src={logos.school} alt="School Logo Preview" className="mt-2 h-16 w-16 object-contain rounded-full border p-1" />}
-                            </div>
-                        </div>
+                 <div>
+                    <label className="block text-md font-bold text-gray-700 mb-2">3. خيارات التصدير</label>
+                    <div className="flex gap-6 p-3 bg-gray-100 rounded-lg justify-center">
+                        <label className="flex items-center gap-2 cursor-pointer text-lg font-semibold">
+                            <input
+                                type="radio"
+                                name="exportType"
+                                checked={exportWithGrades}
+                                onChange={() => setExportWithGrades(true)}
+                                className="h-5 w-5 text-cyan-600 focus:ring-cyan-500"
+                            />
+                            <span>مع الدرجات والنتيجة</span>
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer text-lg font-semibold">
+                            <input
+                                type="radio"
+                                name="exportType"
+                                checked={!exportWithGrades}
+                                onChange={() => setExportWithGrades(false)}
+                                className="h-5 w-5 text-cyan-600 focus:ring-cyan-500"
+                            />
+                            <span>خالي من الدرجات</span>
+                        </label>
+                    </div>
+                </div>
+
+                 <div>
+                    <label className="block text-md font-bold text-gray-700 mb-2">4. اختر الشعارات (اختياري)</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-100 rounded-lg">
+                        <FileInput label="شعار الوزارة" onChange={e => handleLogoChange(e, 'ministry')} type="ministry"/>
+                        <FileInput label="شعار المدرسة" onChange={e => handleLogoChange(e, 'school')} type="school"/>
                     </div>
                 </div>
             </div>
