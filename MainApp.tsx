@@ -20,7 +20,7 @@ import GradeBoardExporter from './components/principal/GradeBoardExporter.tsx';
 import OralExamListsExporter from './components/principal/OralExamListsExporter.tsx';
 // import PromotionLog from './components/principal/PromotionLog.tsx'; // Temporarily disabled, component missing
 import AboutModal from './components/AboutModal.tsx';
-// import ExamHallsManager from './components/principal/ExamHallsManager.tsx';
+import ExamHallsManager from './components/principal/ExamHallsManager.tsx';
 // import CoverEditor from './components/principal/CoverEditor.tsx';
 // import ExamCardsExporter from './components/principal/ExamCardsExporter.tsx';
 import AdministrativeCorrespondence from './components/principal/AdministrativeCorrespondence.tsx';
@@ -408,7 +408,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'exam_cards':
                     return <UnderMaintenance featureName="بطاقات امتحانية" />;
                 case 'exam_halls':
-                    return <UnderMaintenance featureName="قاعات امتحانية" />;
+                    return <ExamHallsManager />;
                 case 'cover_editor':
                     return <UnderMaintenance featureName="محرر الأغلفة" />;
                 case 'exam_control_log':
