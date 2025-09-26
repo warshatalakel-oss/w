@@ -10,7 +10,7 @@ import ClassManager from './components/ClassManager.tsx';
 import GradeSheet from './components/GradeSheet.tsx';
 // import ExportManager from './components/ExportManager.tsx'; // Temporarily disabled due to missing gradeCalculator.ts
 import StatisticsManager from './components/StatisticsManager.tsx';
-// import TeacherLogExporter from './components/TeacherLogExporter.tsx'; // Temporarily disabled
+import TeacherLogExporter from './components/TeacherLogExporter.tsx';
 // import AdminLogExporter from './components/AdminLogExporter.tsx'; // Temporarily disabled due to missing gradeCalculator.ts
 import PrincipalDashboard from './components/principal/PrincipalDashboard.tsx';
 import ReceiveTeacherLog from './components/principal/ReceiveTeacherLog.tsx';
@@ -299,7 +299,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
     const reportNavItems: NavItem[] = [
         // { view: 'export_results', icon: Printer, label: 'النتائج الامتحانية' }, // Temporarily disabled
         { view: 'statistics', icon: BarChart, label: 'التقارير والإحصاءات' },
-        // { view: 'teacher_log_exporter', icon: ClipboardList, label: 'سجل المدرس' }, // Temporarily disabled
+        { view: 'teacher_log_exporter', icon: ClipboardList, label: 'سجل المدرس' },
         // { view: 'admin_log_exporter', icon: Archive, label: 'السجل العام' }, // Temporarily disabled
         { view: 'primary_school_log', icon: BookText, label: 'درجات الابتدائية' },
     ];
@@ -385,8 +385,8 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                      return <UnderMaintenance featureName="تصدير النتائج" />;
                 case 'statistics':
                     return <StatisticsManager classes={principalClasses} settings={effectiveSettings} />;
-                // case 'teacher_log_exporter': // Temporarily disabled
-                //     return <TeacherLogExporter classes={principalClasses} settings={effectiveSettings} />;
+                case 'teacher_log_exporter':
+                    return <TeacherLogExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'admin_log_exporter':
                     return <UnderMaintenance featureName="السجل العام" />;
                 case 'primary_school_log':

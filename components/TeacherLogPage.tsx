@@ -46,17 +46,15 @@ export default function TeacherLogPage({ settings, logos, pageData, resultsData,
     const { students, classInfo, subjectName, teacherName } = pageData;
 
     const renderLogo = (logo: string | null, defaultText: string) => (
-        <div className="w-24 h-24 rounded-full bg-blue-500 flex items-center justify-center p-1">
+        <div className="w-24 h-24 rounded-full bg-white flex items-center justify-center p-1">
             {logo ? 
-                <img src={logo} alt={defaultText} className="h-full w-full object-contain rounded-full bg-white" /> :
-                <span className="text-white text-center text-sm font-bold">{defaultText}</span>
+                <img src={logo} alt={defaultText} className="h-full w-full object-contain rounded-full" /> :
+                <span className="text-gray-500 text-center text-sm font-bold">{defaultText}</span>
             }
         </div>
     );
 
-    // If it's the summary (last) page, add exactly 1 empty row.
-    // Otherwise, pad with empty rows to fill the page for consistent layout.
-    const emptyRowsCount = showSummary ? 1 : Math.max(0, maxRows - students.length);
+    const emptyRowsCount = Math.max(0, maxRows - students.length);
     const emptyRows = Array.from({ length: emptyRowsCount });
 
     return (
@@ -104,7 +102,7 @@ export default function TeacherLogPage({ settings, logos, pageData, resultsData,
                             return (
                                 <tr key={student.id} className="h-[32px] border-b border-black odd:bg-white even:bg-yellow-50">
                                     <td className="border-l border-black text-center align-top">{startingIndex + index + 1}</td>
-                                    <td className="border-l border-black text-center px-1 font-bold align-top whitespace-nowrap">{student.name}</td>
+                                    <td className="border-l border-black text-right px-1 font-bold align-top whitespace-nowrap">{student.name}</td>
                                     <GradeCell value={grade.firstTerm} />
                                     <GradeCell value={grade.midYear} />
                                     <GradeCell value={grade.secondTerm} />
