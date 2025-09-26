@@ -23,7 +23,7 @@ import AboutModal from './components/AboutModal.tsx';
 // import ExamHallsManager from './components/principal/ExamHallsManager.tsx';
 // import CoverEditor from './components/principal/CoverEditor.tsx';
 // import ExamCardsExporter from './components/principal/ExamCardsExporter.tsx';
-// import AdministrativeCorrespondence from './components/principal/AdministrativeCorrespondence.tsx';
+import AdministrativeCorrespondence from './components/principal/AdministrativeCorrespondence.tsx';
 // import PrimaryLogExporter from './components/principal/PrimaryLogExporter.tsx'; // Temporarily disabled
 import AbsenceManager from './components/principal/AbsenceManager.tsx';
 import SchoolArchive from './components/principal/SchoolArchive.tsx';
@@ -378,7 +378,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                         </div>
                     );
                 case 'administrative_correspondence':
-                    return <UnderMaintenance featureName="مخاطبات ادارية" />;
+                    return <AdministrativeCorrespondence />;
                 // case 'parent_invitations': // Temporarily disabled
                 //     return <ParentInvitationExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'export_results':
