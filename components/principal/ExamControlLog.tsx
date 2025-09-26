@@ -5,6 +5,7 @@ import MinutesView from './MinutesView.tsx';
 import Decision132View from './Decision132View.tsx';
 import SignaturesView from './SignaturesView.tsx';
 import ExamCommitteeView from './ExamCommitteeView.tsx';
+import AuditingCommitteeView from './AuditingCommitteeView.tsx';
 
 interface ExamControlLogProps {
     principal: User;
@@ -160,6 +161,8 @@ export default function ExamControlLog({ principal, users, settings, classes }: 
                 return <SignaturesView setCurrentPageKey={setCurrentPageKey} settings={settings} users={users} />;
             case 'committee':
                 return <ExamCommitteeView setCurrentPageKey={setCurrentPageKey} settings={settings} users={users} />;
+            case 'auditing_committee':
+                return <AuditingCommitteeView setCurrentPageKey={setCurrentPageKey} settings={settings} users={users} />;
             default:
                 const topic = logTopics.find(t => t.key === currentPageKey);
                 if (topic) {
