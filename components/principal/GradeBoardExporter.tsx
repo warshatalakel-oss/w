@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade } from '../../types';
-import { GRADE_LEVELS } from '../../constants';
+import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade } from '../../types.ts';
+import { GRADE_LEVELS } from '../../constants.ts';
 import { calculateStudentResult } from '../../lib/gradeCalculator.ts';
 import { Loader2, FileDown, Upload, BarChart2, Download } from 'lucide-react';
 import GradeBoardPage from './GradeBoardPage.tsx';
@@ -119,7 +119,7 @@ export default function GradeBoardExporter({ classes, settings }: { classes: Cla
     
         allStudents.forEach((student, index) => {
             const studentResult = resultsData.get(student.id);
-            const rowValues = [index + 1, student.name, student.examId];
+            const rowValues: (string | number | null)[] = [index + 1, student.name, student.examId || null];
     
             subjects.forEach(subject => {
                 rowValues.push(null); // Placeholder, will be styled below
@@ -150,7 +150,7 @@ export default function GradeBoardExporter({ classes, settings }: { classes: Cla
                     cell.value = {
                         richText: [
                             { text: `${originalGrade} `, font: { color: { argb: 'FFFF0000' }, strike: true } },
-                            { text: `${decisionGrade}`, font: { color: { argb: 'FF000000' }, bold: true, vertAlign: 'superscript' } }
+                            { text: `${decisionGrade}`, font: { color: { argb: 'FF000000' }, bold: true } }
                         ]
                     };
                 } else if (decisionGrade !== null && decisionGrade !== undefined) {
