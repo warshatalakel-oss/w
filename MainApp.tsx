@@ -17,7 +17,7 @@ import PrincipalDashboard from './components/principal/PrincipalDashboard.tsx';
 import TeacherGradeSheet from './components/teacher/TeacherGradeSheet.tsx';
 // import ElectronicLogbookGenerator from './components/principal/ElectronicLogbookGenerator.tsx'; // Temporarily disabled due to missing LogbookFormPage
 import GradeBoardExporter from './components/principal/GradeBoardExporter.tsx';
-// import OralExamListsExporter from './components/principal/OralExamListsExporter.tsx';
+import OralExamListsExporter from './components/principal/OralExamListsExporter.tsx';
 // import PromotionLog from './components/principal/PromotionLog.tsx'; // Temporarily disabled, component missing
 import AboutModal from './components/AboutModal.tsx';
 // import ExamHallsManager from './components/principal/ExamHallsManager.tsx';
@@ -404,7 +404,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'grade_board':
                     return <GradeBoardExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'oral_exam_lists':
-                    return <UnderMaintenance featureName="قوائم الشفوي" />;
+                    return <OralExamListsExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'exam_cards':
                     return <UnderMaintenance featureName="بطاقات امتحانية" />;
                 case 'exam_halls':
