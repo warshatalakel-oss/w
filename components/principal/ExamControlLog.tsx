@@ -9,6 +9,7 @@ import AuditingCommitteeView from './AuditingCommitteeView.tsx';
 import SpecializationCommitteesView from './SpecializationCommitteesView.tsx';
 import OralExamScheduleView from './OralExamScheduleView.tsx';
 import WrittenExamScheduleView from './WrittenExamScheduleView.tsx';
+import QuestionsAnswersReceiptView from './QuestionsAnswersReceiptView.tsx';
 
 interface ExamControlLogProps {
     principal: User;
@@ -172,6 +173,8 @@ export default function ExamControlLog({ principal, users, settings, classes }: 
                 return <OralExamScheduleView setCurrentPageKey={setCurrentPageKey} settings={settings} classes={classes} />;
             case 'written_exam_schedule':
                 return <WrittenExamScheduleView setCurrentPageKey={setCurrentPageKey} settings={settings} classes={classes} />;
+            case 'questions_answers_receipt':
+                return <QuestionsAnswersReceiptView setCurrentPageKey={setCurrentPageKey} settings={settings} classes={classes} />;
             default:
                 const topic = logTopics.find(t => t.key === currentPageKey);
                 if (topic) {

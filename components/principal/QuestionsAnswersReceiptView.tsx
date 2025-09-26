@@ -20,50 +20,42 @@ export interface PageConfig {
     teacherLabel: 'اسم المعلم' | 'اسم المدرس';
 }
 
-const PageWrapper = ({ title, children, setCurrentPageKey }: { title: string, children?: React.ReactNode, setCurrentPageKey: (key: any) => void }) => (
+const PageWrapper = ({ title, children, onPrev, onNext }: { title: string, children?: React.ReactNode, onPrev: () => void, onNext: () => void }) => (
     <div className="bg-white p-8 rounded-xl shadow-lg">
         <div className="flex justify-between items-center mb-6">
-            <button onClick={() => setCurrentPageKey('index')} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">&larr; العودة للفهرس</button>
+            <button onClick={onPrev} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">&larr; الصفحة السابقة</button>
             <h2 className="text-3xl font-bold text-gray-800">{title}</h2>
-            <button disabled className="px-4 py-2 bg-gray-200 rounded-lg cursor-not-allowed">الصفحة التالية &rarr;</button>
+            <button onClick={onNext} className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">الصفحة التالية &rarr;</button>
         </div>
         {children}
     </div>
 );
 
 const getPagesConfig = (schoolLevel: string, classes: ClassData[]): PageConfig[] => {
-    if (schoolLevel === 'ابتدائية') {
-        const primarySubjects = ['التربية الاسلامية', 'اللغة العربية', 'الإنكليزي', 'الرياضيات', 'العلوم', 'الفنية'];
-        const primarySubjectsWithSocial = [...primarySubjects, 'الاجتماعيات'];
-        return [
-            { grade: 'الصف : الأول ابتدائي', subjects: primarySubjects, teacherLabel: 'اسم المعلم' },
-            { grade: 'الصف : الثاني ابتدائي', subjects: primarySubjects, teacherLabel: 'اسم المعلم' },
-            { grade: 'الصف : الثالث ابتدائي', subjects: primarySubjects, teacherLabel: 'اسم المعلم' },
-            { grade: 'الصف : الرابع ابتدائي', subjects: primarySubjects, teacherLabel: 'اسم المعلم' },
-            { grade: 'الصف : الخامس ابتدائي', subjects: primarySubjectsWithSocial, teacherLabel: 'اسم المعلم' },
-            { grade: 'الصف : السادس ابتدائي', subjects: primarySubjectsWithSocial, teacherLabel: 'اسم المعلم' },
-        ];
-    } else { // متوسطة, اعدادية, ثانوية
-        const uniqueStages = Array.from(new Set(classes.map(c => c.stage)));
-        const gradeOrder = [
-            'الاول متوسط', 'الثاني متوسط', 'الثالث متوسط', 
-            'الرابع العلمي', 'الرابع الادبي', 'الخامس العلمي', 'الخامس الادبي', 'السادس العلمي', 'السادس الادبي'
-        ];
-        const sortedStages = uniqueStages.sort((a, b) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b));
+    const isPrimary = schoolLevel === 'ابتدائية';
+    const teacherLabel = isPrimary ? 'اسم المعلم' : 'اسم المدرس';
+    
+    const uniqueStages = Array.from(new Set(classes.map(c => c.stage)));
+    const gradeOrder = [
+        'الاول ابتدائي', 'الثاني ابتدائي', 'الثالث ابتدائي', 'الرابع ابتدائي', 'الخامس ابتدائي', 'السادس ابتدائي',
+        'الاول متوسط', 'الثاني متوسط', 'الثالث متوسط', 
+        'الرابع العلمي', 'الرابع الادبي', 'الخامس العلمي', 'الخامس الادبي', 'السادس العلمي', 'السادس الادبي'
+    ];
+    
+    const sortedStages = uniqueStages.sort((a, b) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b));
 
-        return sortedStages.map(stage => {
-            const classForStage = classes.find(c => c.stage === stage);
-            const subjects = (classForStage?.subjects || [])
-                .map(s => s.name)
-                .filter(name => name !== 'التربية الرياضية');
-            
-            return {
-                grade: `الصف : ${stage}`,
-                subjects: subjects,
-                teacherLabel: 'اسم المدرس'
-            };
-        });
-    }
+    return sortedStages.map(stage => {
+        const classForStage = classes.find(c => c.stage === stage);
+        const subjects = (classForStage?.subjects || [])
+            .map(s => s.name)
+            .filter(name => !['التربية الرياضية', 'التربية الفنية'].includes(name));
+        
+        return {
+            grade: `الصف : ${stage}`,
+            subjects: subjects,
+            teacherLabel: teacherLabel
+        };
+    });
 };
 
 export default function QuestionsAnswersReceiptView({ setCurrentPageKey, settings, classes }: QuestionsAnswersReceiptViewProps) {
@@ -101,6 +93,7 @@ export default function QuestionsAnswersReceiptView({ setCurrentPageKey, setting
         });
         
         try {
+            // Render all pages at once in a hidden div
             await renderComponent(
                 <QuestionsAnswersReceiptPDF
                     settings={settings}
@@ -133,8 +126,12 @@ export default function QuestionsAnswersReceiptView({ setCurrentPageKey, setting
 
 
     return (
-        <PageWrapper title="استلام الأسئلة والأجوبة" setCurrentPageKey={setCurrentPageKey}>
-            <div className="bg-gray-50 p-4 rounded-lg border shadow-sm space-y-4">
+        <PageWrapper 
+            title="استلام الأسئلة والأجوبة" 
+            onPrev={() => setCurrentPageKey('written_exam_schedule')}
+            onNext={() => setCurrentPageKey('seating_charts')}
+        >
+            <div className="bg-gray-50 p-6 rounded-lg border shadow-sm space-y-4">
                  <div className="flex items-center gap-4">
                     <label className="font-bold text-lg">عنوان الامتحان:</label>
                     <input 

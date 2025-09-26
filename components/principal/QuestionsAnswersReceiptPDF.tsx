@@ -1,6 +1,6 @@
 import React from 'react';
-import type { SchoolSettings } from '../../types';
-import type { PageConfig } from './QuestionsAnswersReceiptView';
+import type { SchoolSettings } from '../../types.ts';
+import type { PageConfig } from './QuestionsAnswersReceiptView.tsx';
 
 interface QuestionsAnswersReceiptPDFProps {
     settings: SchoolSettings;
