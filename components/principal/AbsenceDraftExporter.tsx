@@ -1,10 +1,8 @@
-
-
 import React, { useState } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import type { SchoolSettings } from '../../types';
+import type { SchoolSettings } from '../../types.ts';
 import { FileDown, Loader2, Settings, TableProperties, ArrowRight } from 'lucide-react';
-import AbsenceDraftPage from './AbsenceDraftPage.tsx'; // This will contain the PDF layout
+import AbsenceDraftPage from './AbsenceDraftPage.tsx';
 
 declare const jspdf: any;
 declare const html2canvas: any;
@@ -13,6 +11,22 @@ export interface TableRowData {
   subject: string;
   date: string;
 }
+
+interface AbsenceDraftExporterProps {
+    setCurrentPageKey: (key: string) => void;
+    settings: SchoolSettings;
+}
+
+const PageWrapper = ({ title, children, onPrev, onNext }: { title: string, children?: React.ReactNode, onPrev: () => void, onNext: () => void }) => (
+    <div className="bg-white p-8 rounded-xl shadow-lg">
+        <div className="flex justify-between items-center mb-6">
+            <button onClick={onPrev} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">&larr; الصفحة السابقة</button>
+            <h2 className="text-3xl font-bold text-gray-800">{title}</h2>
+            <button onClick={onNext} className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">الصفحة التالية &rarr;</button>
+        </div>
+        {children}
+    </div>
+);
 
 const EditableCell = ({ value, onSave }: { value: string; onSave: (value: string) => void; }) => {
     return (
@@ -26,7 +40,6 @@ const EditableCell = ({ value, onSave }: { value: string; onSave: (value: string
     );
 };
 
-// New component to render horizontal lines within a cell
 const MultiRowCell = () => (
     <div className="flex flex-col h-full">
         <div className="flex-1 border-b-2 border-black"></div>
@@ -94,7 +107,7 @@ const AbsenceFormTable = ({ examDays, tableData, onUpdate }: { examDays: number;
     );
 };
 
-export default function DailyAbsenceFormExporter({ settings }: { settings: SchoolSettings }) {
+export default function AbsenceDraftExporter({ setCurrentPageKey, settings }: AbsenceDraftExporterProps) {
     const [examDays, setExamDays] = useState(6);
     const [hallCount, setHallCount] = useState(1);
     const [sectorCount, setSectorCount] = useState(1);
@@ -172,42 +185,49 @@ export default function DailyAbsenceFormExporter({ settings }: { settings: Schoo
     };
 
     return (
-        <div className="bg-white p-8 rounded-xl shadow-lg max-w-7xl mx-auto space-y-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b pb-4 flex items-center gap-3">
-                <Settings />
-                إعداد استمارة الغيابات اليومية
-            </h2>
+        <PageWrapper
+            title="استمارة الغيابات اليومية للطلبة"
+            onPrev={() => setCurrentPageKey('seating_charts')}
+            onNext={() => setCurrentPageKey('exam_booklets_receipt')}
+        >
+            <div className="bg-gray-50 p-6 rounded-lg border shadow-sm space-y-8">
+                <div>
+                    <h3 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-3">
+                        <Settings />
+                        إعداد استمارة الغيابات اليومية
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
+                        <div>
+                            <label className="block text-md font-bold text-gray-700 mb-2">1. عدد أيام الامتحان</label>
+                            <select value={examDays} onChange={e => setExamDays(Number(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                {Array.from({ length: 6 }, (_, i) => i + 6).map(day => (
+                                    <option key={day} value={day}>{day} أيام</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-md font-bold text-gray-700 mb-2">2. عدد القاعات</label>
+                            <input type="number" value={hallCount} onChange={e => setHallCount(Number(e.target.value) || 1)} min="1" className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                        </div>
+                        <div>
+                            <label className="block text-md font-bold text-gray-700 mb-2">3. عدد القطاعات</label>
+                            <input type="number" value={sectorCount} onChange={e => setSectorCount(Number(e.target.value) || 1)} min="1" className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
+                        </div>
+                    </div>
+                </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
-                <div>
-                    <label className="block text-md font-bold text-gray-700 mb-2">1. عدد أيام الامتحان</label>
-                    <select value={examDays} onChange={e => setExamDays(Number(e.target.value))} className="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                        {Array.from({ length: 6 }, (_, i) => i + 6).map(day => (
-                            <option key={day} value={day}>{day} أيام</option>
-                        ))}
-                    </select>
-                </div>
-                <div>
-                    <label className="block text-md font-bold text-gray-700 mb-2">2. عدد القاعات</label>
-                    <input type="number" value={hallCount} onChange={e => setHallCount(Number(e.target.value) || 1)} min="1" className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-                </div>
-                <div>
-                    <label className="block text-md font-bold text-gray-700 mb-2">3. عدد القطاعات</label>
-                    <input type="number" value={sectorCount} onChange={e => setSectorCount(Number(e.target.value) || 1)} min="1" className="w-full px-4 py-2 border border-gray-300 rounded-lg" />
-                </div>
-            </div>
-
-            <div className="flex justify-center gap-4 mt-4 border-t pt-6">
-                <button onClick={handleShowForm} className="flex items-center gap-2 px-6 py-3 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 transition">
-                    <TableProperties size={20} />
-                    <span>{showForm ? 'تحديث النموذج' : 'إنشاء نموذج للمعاينة'}</span>
-                </button>
-                {showForm && (
-                     <button onClick={handleExportPdf} disabled={isExporting} className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition disabled:bg-gray-400">
-                        {isExporting ? <Loader2 className="animate-spin" /> : <FileDown size={20} />}
-                        <span>{isExporting ? 'جاري التصدير...' : 'تصدير PDF'}</span>
+                <div className="flex justify-center gap-4 mt-4 border-t pt-6">
+                    <button onClick={handleShowForm} className="flex items-center gap-2 px-6 py-3 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 transition">
+                        <TableProperties size={20} />
+                        <span>{showForm ? 'تحديث النموذج' : 'إنشاء نموذج للمعاينة'}</span>
                     </button>
-                )}
+                    {showForm && (
+                        <button onClick={handleExportPdf} disabled={isExporting} className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition disabled:bg-gray-400">
+                            {isExporting ? <Loader2 className="animate-spin" /> : <FileDown size={20} />}
+                            <span>{isExporting ? 'جاري التصدير...' : 'تصدير PDF'}</span>
+                        </button>
+                    )}
+                </div>
             </div>
 
             {showForm && (
@@ -219,6 +239,6 @@ export default function DailyAbsenceFormExporter({ settings }: { settings: Schoo
                     <AbsenceFormTable examDays={examDays} tableData={tableData} onUpdate={handleUpdateTableData} />
                 </div>
             )}
-        </div>
+        </PageWrapper>
     );
 }

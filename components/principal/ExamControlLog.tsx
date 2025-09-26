@@ -11,6 +11,7 @@ import OralExamScheduleView from './OralExamScheduleView.tsx';
 import WrittenExamScheduleView from './WrittenExamScheduleView.tsx';
 import QuestionsAnswersReceiptView from './QuestionsAnswersReceiptView.tsx';
 import SeatingChartsManager from './SeatingChartsManager.tsx';
+import AbsenceDraftExporter from './AbsenceDraftExporter.tsx';
 
 interface ExamControlLogProps {
     principal: User;
@@ -177,8 +178,9 @@ export default function ExamControlLog({ principal, users, settings, classes }: 
             case 'questions_answers_receipt':
                 return <QuestionsAnswersReceiptView setCurrentPageKey={setCurrentPageKey} settings={settings} classes={classes} />;
             case 'seating_charts':
-// FIX: Removed unused 'settings' and 'classes' props from the SeatingChartsManager component invocation to resolve the TypeScript error. The component does not require these props.
                 return <SeatingChartsManager setCurrentPageKey={setCurrentPageKey} />;
+            case 'absence_form':
+                return <AbsenceDraftExporter setCurrentPageKey={setCurrentPageKey} settings={settings} />;
             default:
                 const topic = logTopics.find(t => t.key === currentPageKey);
                 if (topic) {

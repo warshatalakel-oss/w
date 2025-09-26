@@ -1,6 +1,5 @@
 import React from 'react';
 
-// Define the type for our table data, matching the parent component
 export interface TableRowData {
   subject: string;
   date: string;
@@ -24,7 +23,6 @@ const ShiftedCell = ({ children, className = "" }: { children?: React.ReactNode;
     );
 };
 
-// New component to render horizontal lines within a cell
 const MultiRowCell = () => (
     <div className="flex flex-col h-full">
         <div className="flex-1 border-b-2 border-black h-[23.5px]"></div>
