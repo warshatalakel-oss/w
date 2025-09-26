@@ -3,11 +3,12 @@ import * as ReactDOM from 'react-dom/client';
 import type { ClassData, SchoolSettings, Student, StudentResult, CalculatedGrade } from '../types.ts';
 import { GRADE_LEVELS } from '../constants.ts';
 import { calculateStudentResult } from '../lib/gradeCalculator.ts';
-import { Loader2, FileDown } from 'lucide-react';
+import { Loader2, FileDown, AlertTriangle } from 'lucide-react';
 
 declare const jspdf: any;
 declare const html2canvas: any;
 
+// Define types and constants
 type ReportType = 'successful' | 'failing' | 'supplementary' | 'decision_log' | 'overall_percentages';
 
 const REPORT_TABS: { key: ReportType; label: string }[] = [
@@ -20,6 +21,17 @@ const REPORT_TABS: { key: ReportType; label: string }[] = [
 
 const ROWS_PER_PAGE = 25;
 
+// Under Maintenance Component
+const UnderMaintenance: React.FC<{ featureName: string }> = ({ featureName }) => (
+    <div className="flex flex-col items-center justify-center h-64 bg-gray-100 rounded-lg">
+        <AlertTriangle className="w-12 h-12 text-yellow-500 mb-4" />
+        <h3 className="text-xl font-bold text-gray-700">ميزة "{featureName}" قيد التطوير</h3>
+        <p className="mt-2 text-gray-500">ستكون هذه الميزة متاحة قريباً. شكراً لتفهمكم.</p>
+    </div>
+);
+
+
+// ReportPage component (for PDF generation)
 interface ReportPageProps {
     settings: SchoolSettings;
     title: string;
@@ -27,7 +39,6 @@ interface ReportPageProps {
     pageNumber: number;
     totalPages: number;
 }
-
 const ReportPage = React.forwardRef<HTMLDivElement, ReportPageProps>(({ settings, title, children, pageNumber, totalPages }, ref) => (
     <div ref={ref} className="w-[794px] h-[1123px] p-10 bg-white flex flex-col font-['Cairo']" style={{ direction: 'rtl' }}>
         <header className="text-center mb-4">
@@ -46,7 +57,7 @@ const ReportPage = React.forwardRef<HTMLDivElement, ReportPageProps>(({ settings
     </div>
 ));
 
-
+// Report Tables
 interface SuccessFailReportProps {
     students: (Student & { classId: string })[];
     classMap: Map<string, ClassData>;
@@ -54,14 +65,11 @@ interface SuccessFailReportProps {
 }
 const SuccessFailReport: React.FC<SuccessFailReportProps> = ({ students, classMap, startingIndex = 0 }) => {
     const headers = ['تسلسل', 'اسم الطالب', 'الرقم الامتحاني', 'رقم القيد', 'الشعبة'];
-
     return (
         <table className="w-full border-collapse border border-black text-lg">
             <thead className="bg-gray-200">
                 <tr>
-                    {headers.map(h => 
-                        <th key={h} className="border border-black p-2 font-bold">{h}</th>
-                    )}
+                    {headers.map(h => <th key={h} className="border border-black p-2 font-bold">{h}</th>)}
                 </tr>
             </thead>
             <tbody>
@@ -79,27 +87,17 @@ const SuccessFailReport: React.FC<SuccessFailReportProps> = ({ students, classMa
     );
 };
 
-// New type for students with failing subjects
 interface SupplementaryStudent extends Student {
     classId: string;
     failingSubjects: string[];
 }
-
-// New component for the supplementary report table
-const SupplementaryReport: React.FC<{
-    students: SupplementaryStudent[],
-    classMap: Map<string, ClassData>,
-    startingIndex?: number
-}> = ({ students, classMap, startingIndex = 0 }) => {
+const SupplementaryReport: React.FC<{ students: SupplementaryStudent[], classMap: Map<string, ClassData>, startingIndex?: number }> = ({ students, classMap, startingIndex = 0 }) => {
     const headers = ['تسلسل', 'اسم الطالب', 'الرقم الامتحاني', 'الصف', 'الدروس التي اكمل بها', 'التوقيع'];
-
     return (
         <table className="w-full border-collapse border border-black text-lg">
             <thead className="bg-gray-200">
                 <tr>
-                    {headers.map(h => 
-                        <th key={h} className="border border-black p-2 font-bold">{h}</th>
-                    )}
+                    {headers.map(h => <th key={h} className="border border-black p-2 font-bold">{h}</th>)}
                 </tr>
             </thead>
             <tbody>
@@ -119,6 +117,7 @@ const SupplementaryReport: React.FC<{
 };
 
 
+// Main Component
 export default function StatisticsManager({ classes, settings }: { classes: ClassData[], settings: SchoolSettings }) {
     const [selectedStage, setSelectedStage] = useState('');
     const [selectedClassIds, setSelectedClassIds] = useState<string[]>([]);
@@ -206,7 +205,7 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
             for (let i = 0; i < totalPages; i++) {
                 const pageData = data.slice(i * ROWS_PER_PAGE, (i + 1) * ROWS_PER_PAGE);
                 
-                 let reportContent;
+                let reportContent;
                 if (activeTab === 'supplementary') {
                     reportContent = <SupplementaryReport students={pageData as SupplementaryStudent[]} classMap={studentResults.classMap} startingIndex={i * ROWS_PER_PAGE} />;
                 } else {
@@ -238,8 +237,44 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
         }
     };
     
-    const reportTitleForPreview = REPORT_TABS.find(t => t.key === activeTab)?.label || 'تقرير';
+    const renderContent = () => {
+        if (selectedClassIds.length === 0) {
+            return (
+                <div className="flex items-center justify-center h-64 text-gray-500">
+                    <p>اختر مرحلة وشعبة لعرض التقرير.</p>
+                </div>
+            );
+        }
 
+        const reportTitleForPreview = REPORT_TABS.find(t => t.key === activeTab)?.label || 'تقرير';
+
+        switch (activeTab) {
+            case 'successful':
+            case 'failing':
+            case 'supplementary':
+                const pageData = filteredData.slice(0, ROWS_PER_PAGE);
+                let reportContent;
+                if (activeTab === 'supplementary') {
+                    reportContent = <SupplementaryReport students={pageData as SupplementaryStudent[]} classMap={studentResults.classMap} />;
+                } else {
+                    reportContent = <SuccessFailReport students={pageData} classMap={studentResults.classMap} />;
+                }
+                 return (
+                    <div className="transform scale-[0.8] origin-top mx-auto">
+                      <ReportPage settings={settings} title={reportTitleForPreview} pageNumber={1} totalPages={Math.ceil(filteredData.length / ROWS_PER_PAGE) || 1}>
+                         {reportContent}
+                      </ReportPage>
+                    </div>
+                 )
+            case 'decision_log':
+                return <UnderMaintenance featureName="سجل إضافات القرار" />;
+            case 'overall_percentages':
+                return <UnderMaintenance featureName="النسب الكلية" />;
+            default:
+                return null;
+        }
+    };
+    
     return (
         <div className="bg-white p-8 rounded-xl shadow-lg">
             {isExporting && (
@@ -278,35 +313,20 @@ export default function StatisticsManager({ classes, settings }: { classes: Clas
                         <button 
                             key={tab.key}
                             onClick={() => setActiveTab(tab.key)}
-                            disabled={!['successful', 'failing', 'supplementary'].includes(tab.key)} 
-                            className={`px-4 py-2 font-semibold rounded-t-lg transition-colors ${activeTab === tab.key ? 'bg-cyan-600 text-white' : 'bg-gray-200'} disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed`}
+                            className={`px-4 py-2 font-semibold rounded-t-lg transition-colors ${activeTab === tab.key ? 'bg-cyan-600 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
                         >
                             {tab.label}
                         </button>
                     ))}
                 </div>
-                 <button onClick={handleExportPdf} disabled={isExporting || filteredData.length === 0} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition disabled:bg-gray-400">
+                 <button onClick={handleExportPdf} disabled={isExporting || filteredData.length === 0 || ['decision_log', 'overall_percentages'].includes(activeTab)} className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition disabled:bg-gray-400">
                     <FileDown size={20} />
                     <span>تصدير PDF</span>
                 </button>
             </div>
 
             <div className="bg-gray-100 p-4 rounded-lg overflow-x-auto min-h-[400px]">
-                {selectedClassIds.length > 0 ? (
-                    <div className="transform scale-[0.8] origin-top mx-auto">
-                      <ReportPage settings={settings} title={reportTitleForPreview} pageNumber={1} totalPages={Math.ceil(filteredData.length / ROWS_PER_PAGE) || 1}>
-                         {activeTab === 'supplementary' ? (
-                            <SupplementaryReport students={filteredData.slice(0, ROWS_PER_PAGE) as SupplementaryStudent[]} classMap={studentResults.classMap} />
-                        ) : (
-                            <SuccessFailReport students={filteredData.slice(0, ROWS_PER_PAGE)} classMap={studentResults.classMap} />
-                        )}
-                      </ReportPage>
-                    </div>
-                ) : (
-                    <div className="flex items-center justify-center h-full text-gray-500">
-                        <p>اختر مرحلة وشعبة لعرض التقرير.</p>
-                    </div>
-                )}
+                {renderContent()}
             </div>
 
         </div>
