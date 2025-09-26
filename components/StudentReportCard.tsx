@@ -56,7 +56,7 @@ export default function StudentReportCard({ student, classData, settings, studen
 
     return (
         <div className="w-[794px] h-[1123px] p-6 bg-white flex flex-col font-['Cairo']" style={{ direction: 'rtl' }}>
-            <div className="p-3 bg-fuchsia-200 border-2 border-black rounded-lg shadow-lg">
+            <div className="p-3 bg-violet-200 border-2 border-black rounded-lg shadow-lg">
                 <header className="flex justify-between items-center text-center mb-2">
                     {renderLogo(logos.ministry, 'شعار الوزارة')}
                     <div className="flex-grow">
@@ -66,11 +66,11 @@ export default function StudentReportCard({ student, classData, settings, studen
                     {renderLogo(logos.school, 'شعار المدرسة')}
                 </header>
 
-                <div className="flex justify-between items-center text-lg font-bold p-2 border-y-2 border-x-2 border-black bg-fuchsia-100 rounded-t-md">
+                <div className="flex justify-between items-center text-lg font-bold p-2 border-y-2 border-x-2 border-black bg-violet-100 rounded-t-md">
                     <span>اسم الطالب: {student.name}</span>
                     <span>{classData.stage} - ({classData.section})</span>
                 </div>
-                 <div className="flex justify-between items-center text-lg font-bold p-2 border-b-2 border-x-2 border-black bg-fuchsia-100 rounded-b-md mb-2">
+                 <div className="flex justify-between items-center text-lg font-bold p-2 border-b-2 border-x-2 border-black bg-violet-100 rounded-b-md mb-2">
                     <span>الرقم الامتحاني: {student.examId}</span>
                     <span>الصف: {classData.stage}</span>
                 </div>
@@ -78,7 +78,7 @@ export default function StudentReportCard({ student, classData, settings, studen
 
             <main className="flex-grow mt-2">
                 <table className="w-full border-collapse border-2 border-black">
-                    <thead className="bg-fuchsia-200">
+                    <thead className="bg-violet-200">
                         <tr>
                             {reportCardHeaders.map(header => (
                                 <th key={header} className="p-2 border border-black font-bold">{header}</th>
@@ -90,8 +90,8 @@ export default function StudentReportCard({ student, classData, settings, studen
                             const grades = student.grades?.[subject.name] || DEFAULT_SUBJECT_GRADE;
                             const calculated = finalCalculatedGrades[subject.name] || DEFAULT_CALCULATED_GRADE;
                             return (
-                                <tr key={subject.id} className={index % 2 === 0 ? 'bg-white' : 'bg-fuchsia-50'}>
-                                    <td className="p-2 border border-black font-semibold text-right bg-fuchsia-100">{subject.name}</td>
+                                <tr key={subject.id} className={index % 2 === 0 ? 'bg-white' : 'bg-violet-50'}>
+                                    <td className="p-2 border border-black font-semibold text-right bg-violet-100">{subject.name}</td>
                                     <GradeCell value={grades.firstTerm} />
                                     <GradeCell value={grades.midYear} />
                                     <GradeCell value={grades.secondTerm} />
@@ -104,28 +104,19 @@ export default function StudentReportCard({ student, classData, settings, studen
                                         <GradeCell value={grades.finalExam1st} />
                                     )}
                                     
-                                    {(() => { // This is the final grade cell
+                                    {(() => {
                                         const originalGrade = calculated.finalGrade1st;
                                         const decisionGrade = calculated.finalGradeWithDecision;
                                         const decisionApplied = calculated.decisionApplied;
 
-                                        if (decisionApplied > 0 && decisionGrade === 50 && originalGrade !== null) {
+                                        if (decisionApplied > 0 && decisionGrade === 50 && originalGrade !== null && originalGrade < 50) {
                                             return (
                                                 <td className="border border-black text-center p-0 align-middle">
-                                                    {/* Container for vertical stacking. */}
-                                                    <div className="flex flex-col items-center justify-center leading-none h-full py-1">
-                                                        {/* The new grade '50', large, black, and on top */}
-                                                        <span className="text-2xl font-bold text-black">{decisionGrade}</span>
-                                                        
-                                                        {/* Container for the original grade and its diagonal strikethrough */}
-                                                        <div className="relative mt-[-4px]">
-                                                            {/* The original grade, smaller and red */}
-                                                            <span className="text-lg font-bold text-red-600">{originalGrade}</span>
-                                                            {/* The diagonal red line */}
-                                                            <div 
-                                                                className="absolute w-[140%] h-[2px] bg-red-600 top-1/2 left-1/2"
-                                                                style={{ transform: 'translate(-50%, -50%) rotate(-45deg)' }}
-                                                            ></div>
+                                                    <div className="flex flex-col items-center justify-center h-full py-1 leading-tight">
+                                                        <span className="text-xl font-bold text-black">{decisionGrade}</span>
+                                                        <div className="relative">
+                                                            <span className="text-md font-bold text-red-600">{originalGrade}</span>
+                                                            <div className="absolute top-1/2 left-1/2 w-[140%] h-[2px] bg-red-600 transform -translate-x-1/2 -translate-y-1/2 -rotate-12"></div>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -144,7 +135,7 @@ export default function StudentReportCard({ student, classData, settings, studen
             </main>
 
             <footer className="mt-auto">
-                <div className="flex justify-center items-center gap-4 text-xl font-bold p-2 border-2 border-black rounded-lg bg-fuchsia-200 shadow-lg">
+                <div className="flex justify-center items-center gap-4 text-xl font-bold p-2 border-2 border-black rounded-lg bg-violet-200 shadow-lg">
                     <span>نتيجة الدور الاول:</span>
                     <span className="px-4 py-1 bg-white rounded-md">{result.message}</span>
                 </div>

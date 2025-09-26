@@ -29,9 +29,10 @@ import AbsenceManager from './components/principal/AbsenceManager.tsx';
 import SchoolArchive from './components/principal/SchoolArchive.tsx';
 import ExamControlLog from './components/principal/ExamControlLog.tsx';
 // import ParentInvitationExporter from './components/principal/ParentInvitationExporter.tsx'; // Temporarily disabled
+import ExportManager from './components/ExportManager.tsx';
 
 
-type View = 'home' | 'settings' | 'class_manager' | 'grade_sheet' | 'export_results' | 'statistics' | 'teacher_log_exporter' | 'admin_log_exporter' | 'principal_dashboard' | 'receive_teacher_logs' | 'electronic_logbook' | 'grade_board' | 'oral_exam_lists' | 'promotion_log' | 'exam_halls' | 'cover_editor' | 'exam_cards' | 'exam_control_log' | 'administrative_correspondence' | 'primary_school_log' | 'school_archive' | 'absence_manager' | 'parent_invitations';
+type View = 'home' | 'settings' | 'class_manager' | 'grade_sheet' | 'export_results' | 'statistics' | 'teacher_log_exporter' | 'admin_log_exporter' | 'principal_dashboard' | 'receive_teacher_logs' | 'electronic_logbook' | 'grade_board' | 'oral_exam_lists' | 'promotion_log' | 'exam_halls' | 'cover_editor' | 'exam_cards' | 'exam_control_log' | 'administrative_correspondence' | 'primary_school_log' | 'school_archive' | 'absence_manager' | 'parent_invitations' | 'exam_results_exporter';
 
 interface NavItem {
     view: View;
@@ -298,6 +299,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
 
     const reportNavItems: NavItem[] = [
         { view: 'export_results', icon: Printer, label: 'النتائج الشهرية' },
+        { view: 'exam_results_exporter', icon: Printer, label: 'النتائج الامتحانية' },
         { view: 'statistics', icon: BarChart, label: 'التقارير والإحصاءات' },
         { view: 'teacher_log_exporter', icon: ClipboardList, label: 'سجل المدرس' },
         { view: 'admin_log_exporter', icon: Archive, label: 'السجل العام' },
@@ -383,6 +385,8 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 //     return <ParentInvitationExporter classes={principalClasses} settings={effectiveSettings} />;
                 case 'export_results':
                      return <MonthlyResultsExporter classes={principalClasses} settings={effectiveSettings} />;
+                case 'exam_results_exporter':
+                    return <ExportManager classes={principalClasses} settings={effectiveSettings} />;
                 case 'statistics':
                     return <StatisticsManager classes={principalClasses} settings={effectiveSettings} />;
                 case 'teacher_log_exporter':
