@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { User, SchoolSettings, ClassData } from '../../types.ts';
 import { Settings, Map as MapIcon } from 'lucide-react';
 import MinutesView from './MinutesView.tsx';
+import Decision132View from './Decision132View.tsx';
 
 interface ExamControlLogProps {
     principal: User;
@@ -148,6 +149,8 @@ export default function ExamControlLog({ principal, users, settings, classes }: 
                 return <CoverView setCurrentPageKey={setCurrentPageKey} />;
             case 'minutes':
                 return <MinutesView setCurrentPageKey={setCurrentPageKey} settings={settings} users={users} />;
+            case 'decision132':
+                return <Decision132View setCurrentPageKey={setCurrentPageKey} settings={settings} />;
             default:
                 const topic = logTopics.find(t => t.key === currentPageKey);
                 if (topic) {
