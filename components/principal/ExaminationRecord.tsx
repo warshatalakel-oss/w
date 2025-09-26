@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import * as ReactDOM from 'react-dom/client';
-import type { SchoolSettings } from '../../types';
-import { GRADE_LEVELS } from '../../constants';
+import type { SchoolSettings } from '../../types.ts';
+import { GRADE_LEVELS } from '../../constants.ts';
 import { Upload, Printer, Loader2 } from 'lucide-react';
 
 declare const jspdf: any;
