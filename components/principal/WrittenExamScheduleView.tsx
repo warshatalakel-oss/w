@@ -4,6 +4,7 @@ import useLocalStorage from '../../hooks/useLocalStorage.ts';
 import type { SchoolSettings, ClassData } from '../../types.ts';
 import { Printer, Upload, BarChart2, Loader2 } from 'lucide-react';
 import WrittenExamSchedulePDF from './WrittenExamSchedulePDF.tsx';
+import { GRADE_LEVELS } from '../../constants.ts';
 
 declare const jspdf: any;
 declare const html2canvas: any;
@@ -26,18 +27,16 @@ export interface ScheduleConfig {
     examDays: number;
 }
 
-const PageWrapper = ({ title, children, setCurrentPageKey, currentPageKey }: { title: string, children?: React.ReactNode, setCurrentPageKey: (key: any) => void, currentPageKey: any }) => {
-    return (
-        <div className="bg-white p-8 rounded-xl shadow-lg">
-            <div className="flex justify-between items-center mb-6">
-                <button onClick={() => setCurrentPageKey('index')} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">&larr; العودة للفهرس</button>
-                <h2 className="text-3xl font-bold text-gray-800">{title}</h2>
-                <button disabled className="px-4 py-2 bg-gray-200 rounded-lg cursor-not-allowed">الصفحة التالية &rarr;</button>
-            </div>
-            {children}
+const PageWrapper = ({ title, children, onPrev, onNext }: { title: string, children?: React.ReactNode, onPrev: () => void, onNext: () => void }) => (
+    <div className="bg-white p-8 rounded-xl shadow-lg">
+        <div className="flex justify-between items-center mb-6">
+            <button onClick={onPrev} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">&larr; الصفحة السابقة</button>
+            <h2 className="text-3xl font-bold text-gray-800">{title}</h2>
+            <button onClick={onNext} className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">الصفحة التالية &rarr;</button>
         </div>
-    );
-};
+        {children}
+    </div>
+);
 
 
 const EditableCell: React.FC<{ value: string; onSave: (val: string) => void; }> = ({ value, onSave }) => {
@@ -46,7 +45,7 @@ const EditableCell: React.FC<{ value: string; onSave: (val: string) => void; }> 
             contentEditable
             suppressContentEditableWarning
             onBlur={e => onSave(e.target.innerText)}
-            className="border border-black p-2 h-12 text-center align-middle font-semibold bg-white"
+            className="border border-black p-2 h-12 text-center align-middle font-semibold bg-white focus:outline-none focus:bg-yellow-100"
         >
             {value}
         </td>
@@ -95,12 +94,7 @@ export default function WrittenExamScheduleView({ setCurrentPageKey, settings, c
         
         const finalStages = filterStages(existingStages);
         
-        const gradeOrder = [
-            'الاول ابتدائي', 'الثاني ابتدائي', 'الثالث ابتدائي', 'الرابع ابتدائي', 'الخامس ابتدائي', 'السادس ابتدائي',
-            'الاول متوسط', 'الثاني متوسط', 'الثالث متوسط', 
-            'الرابع الادبي', 'الرابع العلمي', 'الخامس الادبي', 'الخامس العلمي', 'السادس الادبي', 'السادس العلمي'
-        ];
-        const sortedFinalStages = finalStages.sort((a, b) => gradeOrder.indexOf(a) - gradeOrder.indexOf(b));
+        const sortedFinalStages = finalStages.sort((a, b) => GRADE_LEVELS.indexOf(a) - GRADE_LEVELS.indexOf(b));
         
         const initialTableData: Record<number, Record<string, string>> = {};
         for (let i = 0; i < config.examDays; i++) {
@@ -175,7 +169,11 @@ export default function WrittenExamScheduleView({ setCurrentPageKey, settings, c
     };
     
     return (
-        <PageWrapper title="جدول الامتحانات التحريرية" setCurrentPageKey={setCurrentPageKey} currentPageKey="written_exam_schedule">
+        <PageWrapper 
+            title="جدول الامتحانات التحريرية" 
+            onPrev={() => setCurrentPageKey('oral_exam_schedule')}
+            onNext={() => setCurrentPageKey('questions_answers_receipt')}
+        >
             <div className="bg-gray-50 p-6 rounded-lg border shadow-sm space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
@@ -246,7 +244,10 @@ export default function WrittenExamScheduleView({ setCurrentPageKey, settings, c
                             </tbody>
                         </table>
                         <div className="mt-4 font-bold text-lg">
-                             ملاحظة مهمة جدا" : يبدأ الامتحان الساعة <EditableCell value={generatedSchedule.examTime} onSave={handleTimeChange} />
+                             ملاحظة مهمة جدا" : يبدأ الامتحان الساعة 
+                             <div className="inline-block w-40 mx-2">
+                                <EditableCell value={generatedSchedule.examTime} onSave={handleTimeChange} />
+                            </div>
                         </div>
                     </div>
                 </div>

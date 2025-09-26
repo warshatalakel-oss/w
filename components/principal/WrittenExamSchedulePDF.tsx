@@ -1,6 +1,6 @@
 import React from 'react';
-import type { SchoolSettings } from '../../types';
-import type { ScheduleState, ScheduleConfig } from './WrittenExamScheduleView';
+import type { SchoolSettings } from '../../types.ts';
+import type { ScheduleState, ScheduleConfig } from './WrittenExamScheduleView.tsx';
 
 interface WrittenExamSchedulePDFProps {
     settings: SchoolSettings;
@@ -75,7 +75,7 @@ export default function WrittenExamSchedulePDF({ settings, config, schedule, sch
                     </div>
                     <div className="text-left mt-auto font-bold text-lg">
                         <p><div style={liftStyle}>مدير المدرسة</div></p>
-                        <p><div style={liftStyle}>يضاف اسم المدير تلقائيا" هنا</div></p>
+                        <p><div style={liftStyle}>{settings.principalName}</div></p>
                     </div>
                 </div>
             </div>
