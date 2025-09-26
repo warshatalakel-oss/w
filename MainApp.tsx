@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Settings as SettingsIcon, BookUser, Home, Printer, BarChart, ClipboardList, Archive, User, LogOut, Eye, ChevronsRight, ChevronsLeft, BookCopy, LayoutGrid, ClipboardCheck, Info, Presentation, Brush, Mail, BookMarked, BookText, FileText, PlayCircle, X, Users, CalendarClock, Bell, ClipboardPaste } from 'lucide-react';
+import { Settings as SettingsIcon, BookUser, Home, Printer, BarChart, ClipboardList, Archive, User, LogOut, Eye, ChevronsRight, ChevronsLeft, BookCopy, LayoutGrid, ClipboardCheck, Info, Presentation, Brush, Mail, BookMarked, BookText, FileText, PlayCircle, X, Users, CalendarClock, Bell, ClipboardPaste, Sparkles } from 'lucide-react';
 import type { SchoolSettings, ClassData, User as CurrentUser, Teacher } from './types.ts';
 import { DEFAULT_SCHOOL_SETTINGS } from './constants.ts';
 import { db } from './lib/firebase.ts';
@@ -15,6 +15,7 @@ import AdminLogExporter from './components/AdminLogExporter.tsx';
 import PrincipalDashboard from './components/principal/PrincipalDashboard.tsx';
 import ReceiveTeacherLog from './components/principal/ReceiveTeacherLog.tsx';
 import TeacherGradeSheet from './components/teacher/TeacherGradeSheet.tsx';
+import TeacherPlatform from './components/teacher/TeacherPlatform.tsx';
 // import ElectronicLogbookGenerator from './components/principal/ElectronicLogbookGenerator.tsx'; // Temporarily disabled due to missing LogbookFormPage
 import GradeBoardExporter from './components/principal/GradeBoardExporter.tsx';
 import OralExamListsExporter from './components/principal/OralExamListsExporter.tsx';
@@ -32,7 +33,7 @@ import ExamControlLog from './components/principal/ExamControlLog.tsx';
 import ExportManager from './components/ExportManager.tsx';
 
 
-type View = 'home' | 'settings' | 'class_manager' | 'grade_sheet' | 'export_results' | 'statistics' | 'teacher_log_exporter' | 'admin_log_exporter' | 'principal_dashboard' | 'receive_teacher_logs' | 'electronic_logbook' | 'grade_board' | 'oral_exam_lists' | 'promotion_log' | 'exam_halls' | 'cover_editor' | 'exam_cards' | 'exam_control_log' | 'administrative_correspondence' | 'primary_school_log' | 'school_archive' | 'absence_manager' | 'parent_invitations' | 'exam_results_exporter';
+type View = 'home' | 'settings' | 'class_manager' | 'grade_sheet' | 'export_results' | 'statistics' | 'teacher_log_exporter' | 'admin_log_exporter' | 'principal_dashboard' | 'receive_teacher_logs' | 'electronic_logbook' | 'grade_board' | 'oral_exam_lists' | 'promotion_log' | 'exam_halls' | 'cover_editor' | 'exam_cards' | 'exam_control_log' | 'administrative_correspondence' | 'primary_school_log' | 'school_archive' | 'absence_manager' | 'parent_invitations' | 'exam_results_exporter' | 'teacher_platform';
 
 interface NavItem {
     view: View;
@@ -355,6 +356,8 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                             <p className="mt-2 text-gray-600">اختر أحد صفوفك من القائمة الجانبية للبدء في إدخال الدرجات. لم يتم تعيين أي صفوف لك بعد.</p>
                         </div>
                     );
+                case 'teacher_platform':
+                    return <TeacherPlatform />;
                 default:
                      return <div>Teacher view not found</div>
             }
@@ -502,6 +505,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                         {isTeacher && (
                              <div className="space-y-1">
                                 <NavButton item={{view: 'home', icon: Home, label: 'الرئيسية'}} isCollapsed={isSidebarCollapsed} onClick={() => handleNavClick('home')} isActive={activeView === 'home' && !selectedClassId}/>
+                                <NavButton item={{view: 'teacher_platform', icon: Sparkles, label: 'تربوي تك الأستاذ'}} isCollapsed={isSidebarCollapsed} onClick={() => handleNavClick('teacher_platform')} isActive={activeView === 'teacher_platform'}/>
                                 <div className="pt-2 mt-2 border-t border-gray-700 space-y-1">
                                     <h3 className={`px-4 text-xs font-semibold uppercase text-gray-400 ${isSidebarCollapsed ? 'hidden' : 'block'}`}>صفوفي</h3>
                                     {teacherNavItems.map(item => <NavButton key={item.label} item={item} isCollapsed={isSidebarCollapsed} onClick={() => item.classId && handleNavClick(item.view, item.classId)} isActive={selectedClassId === item.classId} />)}

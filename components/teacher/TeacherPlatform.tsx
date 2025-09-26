@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, BookCopy, Edit, CheckSquare, FileText, Image as ImageIcon, BrainCircuit, BookOpen } from 'lucide-react';
+import { Sparkles, BookCopy, Edit, CheckSquare, FileText, ImageIcon, BrainCircuit, BookOpen } from 'lucide-react';
 
 const FeatureCard = ({ icon, title, description }: { icon: React.ReactNode, title: string, description: string }) => (
     <div className="bg-white p-6 rounded-xl shadow-lg border border-gray-200 hover:shadow-cyan-200/50 hover:border-cyan-400 transition-all duration-300">
@@ -40,7 +40,7 @@ export default function TeacherPlatform() {
                 <FeatureCard 
                     icon={<CheckSquare size={28} />}
                     title="اختبارات يومية مع فحص تلقائي"
-                    description="وفر وقتك وجهدك عبر إنشاء اختبارات يومية قصيرة يتم تصحيحها تلقائيًا، مع تزويدك بتحليلات فورية لأداء الطلاب."
+                    description="وفر وقتك وجهدك عبر إنشاء اختبارات يومية مصغرة يتم تصحيحها تلقائيًا، مع تزويدك بتحليلات فورية لأداء الطلاب."
                 />
                  <FeatureCard 
                     icon={<FileText size={28} />}
@@ -72,7 +72,7 @@ export default function TeacherPlatform() {
                 >
                     <div className="flex items-center justify-center gap-3">
                         <BookOpen />
-                        <span>اتقرهنا للأنتقال للتطبيق</span>
+                        <span>جرب التطبيق الان</span>
                     </div>
                 </a>
                 <div className="mt-8 text-gray-600 bg-yellow-100 border-l-4 border-yellow-400 p-4 rounded-md inline-block">
