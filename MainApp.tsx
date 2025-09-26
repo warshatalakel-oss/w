@@ -26,7 +26,7 @@ import AboutModal from './components/AboutModal.tsx';
 // import AdministrativeCorrespondence from './components/principal/AdministrativeCorrespondence.tsx';
 // import PrimaryLogExporter from './components/principal/PrimaryLogExporter.tsx'; // Temporarily disabled
 import AbsenceManager from './components/principal/AbsenceManager.tsx';
-// import SchoolArchive from './components/principal/SchoolArchive.tsx';
+import SchoolArchive from './components/principal/SchoolArchive.tsx';
 // import ExamControlLog from './components/principal/ExamControlLog.tsx'; // Temporarily disabled
 // import ParentInvitationExporter from './components/principal/ParentInvitationExporter.tsx'; // Temporarily disabled
 
@@ -414,7 +414,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'exam_control_log':
                     return <UnderMaintenance featureName="سجل السيطرة الامتحانية" />;
                 case 'school_archive':
-                    return <UnderMaintenance featureName="ارشيف المدرسة" />;
+                    return <SchoolArchive />;
                 default:
                     return <ClassManager classes={principalClasses} onSelectClass={handleSelectClass} currentUser={currentUser} />;
             }
