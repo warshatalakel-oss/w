@@ -12,6 +12,7 @@ import WrittenExamScheduleView from './WrittenExamScheduleView.tsx';
 import QuestionsAnswersReceiptView from './QuestionsAnswersReceiptView.tsx';
 import SeatingChartsManager from './SeatingChartsManager.tsx';
 import AbsenceDraftExporter from './AbsenceDraftExporter.tsx';
+import ExamBookletsReceipt from './ExamBookletsReceipt.tsx';
 
 interface ExamControlLogProps {
     principal: User;
@@ -181,6 +182,8 @@ export default function ExamControlLog({ principal, users, settings, classes }: 
                 return <SeatingChartsManager setCurrentPageKey={setCurrentPageKey} />;
             case 'absence_form':
                 return <AbsenceDraftExporter setCurrentPageKey={setCurrentPageKey} settings={settings} />;
+            case 'exam_booklets_receipt':
+                return <ExamBookletsReceipt settings={settings} setCurrentPageKey={setCurrentPageKey} />;
             default:
                 const topic = logTopics.find(t => t.key === currentPageKey);
                 if (topic) {

@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useRef } from 'react';
-import type { HallData } from './ExamBookletsReceipt';
-import type { SchoolSettings } from '../../types';
+import type { HallData } from './ExamBookletsReceipt.tsx';
+import type { SchoolSettings } from '../../types.ts';
 
 interface ExamBookletAfterPageProps {
     halls: HallData[];

@@ -12,6 +12,7 @@ declare const html2canvas: any;
 
 interface ExamBookletsReceiptProps {
     settings: SchoolSettings;
+    setCurrentPageKey: (key: string) => void;
 }
 
 interface StudentCounts {
@@ -41,7 +42,19 @@ const isHallValid = (hall: HallData): boolean => {
     );
 };
 
-export default function ExamBookletsReceipt({ settings }: ExamBookletsReceiptProps) {
+const PageWrapper = ({ title, children, onPrev, onNext }: { title: string, children?: React.ReactNode, onPrev: () => void, onNext: () => void }) => (
+    <div className="bg-white p-8 rounded-xl shadow-lg">
+        <div className="flex justify-between items-center mb-6">
+            <button onClick={onPrev} className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300">&larr; الصفحة السابقة</button>
+            <h2 className="text-3xl font-bold text-gray-800">{title}</h2>
+            <button onClick={onNext} className="px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700">الصفحة التالية &rarr;</button>
+        </div>
+        {children}
+    </div>
+);
+
+
+export default function ExamBookletsReceipt({ settings, setCurrentPageKey }: ExamBookletsReceiptProps) {
     const [stage, setStage] = useLocalStorage<'intermediate' | null>('examBookletsReceipt_stage', null);
     const [halls, setHalls] = useLocalStorage<HallData[]>('examBookletsReceipt_halls', []);
     const [day, setDay] = useLocalStorage<string>('examBookletsReceipt_day', '');
@@ -182,58 +195,70 @@ export default function ExamBookletsReceipt({ settings }: ExamBookletsReceiptPro
 
     if (!stage) {
         return (
-            <div className="space-y-4">
-                <p className="font-semibold text-lg">اختر المرحلة الدراسية:</p>
-                <button onClick={() => setStage('intermediate')} className="w-full text-right p-4 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-700 transition shadow-md flex items-center justify-between">
-                    <span>المتوسطة</span>
-                </button>
-                <button disabled className="w-full text-right p-4 bg-gray-400 text-white font-bold rounded-lg cursor-not-allowed flex items-center justify-between">
-                    <span>الابتدائية</span><span className="text-xs bg-gray-500 px-2 py-1 rounded-full">قريباً</span>
-                </button>
-                <button disabled className="w-full text-right p-4 bg-gray-400 text-white font-bold rounded-lg cursor-not-allowed flex items-center justify-between">
-                    <span>الاعدادية</span><span className="text-xs bg-gray-500 px-2 py-1 rounded-full">قريباً</span>
-                </button>
-                 <button disabled className="w-full text-right p-4 bg-gray-400 text-white font-bold rounded-lg cursor-not-allowed flex items-center justify-between">
-                    <span>الثانوية</span><span className="text-xs bg-gray-500 px-2 py-1 rounded-full">قريباً</span>
-                </button>
-            </div>
+             <PageWrapper
+                title="استلام وتسليم رزم الدفاتر الامتحانية"
+                onPrev={() => setCurrentPageKey('absence_form')}
+                onNext={() => setCurrentPageKey('examination_record')}
+            >
+                <div className="space-y-4">
+                    <p className="font-semibold text-lg">اختر المرحلة الدراسية:</p>
+                    <button onClick={() => setStage('intermediate')} className="w-full text-right p-4 bg-cyan-600 text-white font-bold rounded-lg hover:bg-cyan-700 transition shadow-md flex items-center justify-between">
+                        <span>المتوسطة</span>
+                    </button>
+                    <button disabled className="w-full text-right p-4 bg-gray-400 text-white font-bold rounded-lg cursor-not-allowed flex items-center justify-between">
+                        <span>الابتدائية</span><span className="text-xs bg-gray-500 px-2 py-1 rounded-full">قريباً</span>
+                    </button>
+                    <button disabled className="w-full text-right p-4 bg-gray-400 text-white font-bold rounded-lg cursor-not-allowed flex items-center justify-between">
+                        <span>الاعدادية</span><span className="text-xs bg-gray-500 px-2 py-1 rounded-full">قريباً</span>
+                    </button>
+                     <button disabled className="w-full text-right p-4 bg-gray-400 text-white font-bold rounded-lg cursor-not-allowed flex items-center justify-between">
+                        <span>الثانوية</span><span className="text-xs bg-gray-500 px-2 py-1 rounded-full">قريباً</span>
+                    </button>
+                </div>
+            </PageWrapper>
         );
     }
 
     return (
-        <div className="space-y-6">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                 <input type="text" placeholder="اليوم" value={day} onChange={e => setDay(e.target.value)} className="p-2 border rounded-md" />
-                 <input type="text" placeholder="تاريخ الامتحان" value={examDate} onChange={e => setExamDate(e.target.value)} className="p-2 border rounded-md" />
-             </div>
+        <PageWrapper
+            title="استلام وتسليم رزم الدفاتر الامتحانية"
+            onPrev={() => setCurrentPageKey('absence_form')}
+            onNext={() => setCurrentPageKey('examination_record')}
+        >
+            <div className="space-y-6">
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     <input type="text" placeholder="اليوم" value={day} onChange={e => setDay(e.target.value)} className="p-2 border rounded-md" />
+                     <input type="text" placeholder="تاريخ الامتحان" value={examDate} onChange={e => setExamDate(e.target.value)} className="p-2 border rounded-md" />
+                 </div>
 
-             <div className="space-y-4">
-                {halls.map((hall, index) => renderHallForm(hall, index === halls.length - 1))}
-             </div>
-             
-             <div className="flex justify-center gap-4 mt-4 border-t pt-6">
-                <button onClick={handleAddHall} className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
-                    <Building size={18} /> إضافة قاعة
-                </button>
-                 <button onClick={() => setIsPreviewVisible(true)} disabled={halls.length === 0} className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400">
-                    <Eye size={18} /> عرض للمعاينة
-                </button>
-            </div>
-
-            {isPreviewVisible && (
-                <div className="mt-8 border-t-4 border-cyan-500 pt-6">
-                     <div className="flex justify-center mb-4">
-                        <button onClick={handleExportPdf} disabled={isExporting} className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition disabled:bg-gray-400">
-                            {isExporting ? <Loader2 className="animate-spin" /> : <FileDown size={20} />}
-                            <span>{isExporting ? 'جاري التصدير...' : 'تصدير PDF'}</span>
-                        </button>
-                     </div>
-                     <div className="space-y-8 bg-gray-200 p-4 rounded-lg">
-                        <div className="bg-white shadow-lg"><ExamBookletBeforePage halls={halls} day={day} examDate={examDate} subject={subject} onSubjectChange={setSubject} settings={settings} /></div>
-                        <div className="bg-white shadow-lg"><ExamBookletAfterPage halls={halls} day={day} examDate={examDate} subject={subject} settings={settings} /></div>
-                     </div>
+                 <div className="space-y-4">
+                    {halls.map((hall, index) => renderHallForm(hall, index === halls.length - 1))}
+                 </div>
+                 
+                 <div className="flex justify-center gap-4 mt-4 border-t pt-6">
+                    <button onClick={handleAddHall} className="flex items-center gap-2 px-6 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
+                        <Building size={18} /> إضافة قاعة
+                    </button>
+                     <button onClick={() => setIsPreviewVisible(true)} disabled={halls.length === 0} className="flex items-center gap-2 px-6 py-2 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:bg-gray-400">
+                        <Eye size={18} /> عرض للمعاينة
+                    </button>
                 </div>
-            )}
-        </div>
+
+                {isPreviewVisible && (
+                    <div className="mt-8 border-t-4 border-cyan-500 pt-6">
+                         <div className="flex justify-center mb-4">
+                            <button onClick={handleExportPdf} disabled={isExporting} className="flex items-center gap-2 px-6 py-3 bg-red-600 text-white font-bold rounded-lg hover:bg-red-700 transition disabled:bg-gray-400">
+                                {isExporting ? <Loader2 className="animate-spin" /> : <FileDown size={20} />}
+                                <span>{isExporting ? 'جاري التصدير...' : 'تصدير PDF'}</span>
+                            </button>
+                         </div>
+                         <div className="space-y-8 bg-gray-200 p-4 rounded-lg">
+                            <div className="bg-white shadow-lg"><ExamBookletBeforePage halls={halls} day={day} examDate={examDate} subject={subject} onSubjectChange={setSubject} settings={settings} /></div>
+                            <div className="bg-white shadow-lg"><ExamBookletAfterPage halls={halls} day={day} examDate={examDate} subject={subject} settings={settings} /></div>
+                         </div>
+                    </div>
+                )}
+            </div>
+        </PageWrapper>
     );
 }
