@@ -1,13 +1,12 @@
 
-
 import React, { useState, useMemo } from 'react';
 import * as ReactDOM from 'react-dom/client';
 // FIX: Add missing type imports
-import type { User, SchoolSettings, LeaveRequest, StudentNotification } from '../../types';
-import { db } from '../../lib/firebase';
+import type { User, SchoolSettings, LeaveRequest, StudentNotification } from '../../types.ts';
+import { db } from '../../lib/firebase.ts';
 import { Loader2, Check, X, Eye, Send, PlayCircle } from 'lucide-react';
-import LeaveRequestPDF from '../teacher/LeaveRequestPDF';
-import LeaveApprovalPDF from './LeaveApprovalPDF';
+import LeaveRequestPDF from '../teacher/LeaveRequestPDF.tsx';
+import LeaveApprovalPDF from './LeaveApprovalPDF.tsx';
 
 declare const jspdf: any;
 declare const html2canvas: any;
