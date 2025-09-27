@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Settings as SettingsIcon, BookUser, Home, Printer, BarChart, ClipboardList, Archive, User, LogOut, Eye, ChevronsRight, ChevronsLeft, BookCopy, LayoutGrid, ClipboardCheck, Info, Presentation, Brush, Mail, BookMarked, BookText, FileText, PlayCircle, X, Users, CalendarClock, Bell, ClipboardPaste, Sparkles } from 'lucide-react';
-import type { SchoolSettings, ClassData, User as CurrentUser, Teacher } from './types.ts';
+import type { SchoolSettings, ClassData, User as CurrentUser, Teacher, LeaveRequest } from './types.ts';
 import { DEFAULT_SCHOOL_SETTINGS } from './constants.ts';
 import { db } from './lib/firebase.ts';
 import { v4 as uuidv4 } from 'uuid';
@@ -31,9 +31,10 @@ import SchoolArchive from './components/principal/SchoolArchive.tsx';
 import ExamControlLog from './components/principal/ExamControlLog.tsx';
 // import ParentInvitationExporter from './components/principal/ParentInvitationExporter.tsx'; // Temporarily disabled
 import ExportManager from './components/ExportManager.tsx';
+import LeaveRequestManager from './components/principal/LeaveRequestManager.tsx';
 
 
-type View = 'home' | 'settings' | 'class_manager' | 'grade_sheet' | 'export_results' | 'statistics' | 'teacher_log_exporter' | 'admin_log_exporter' | 'principal_dashboard' | 'receive_teacher_logs' | 'electronic_logbook' | 'grade_board' | 'oral_exam_lists' | 'promotion_log' | 'exam_halls' | 'cover_editor' | 'exam_cards' | 'exam_control_log' | 'administrative_correspondence' | 'primary_school_log' | 'school_archive' | 'absence_manager' | 'parent_invitations' | 'exam_results_exporter' | 'teacher_platform';
+type View = 'home' | 'settings' | 'class_manager' | 'grade_sheet' | 'export_results' | 'statistics' | 'teacher_log_exporter' | 'admin_log_exporter' | 'principal_dashboard' | 'receive_teacher_logs' | 'electronic_logbook' | 'grade_board' | 'oral_exam_lists' | 'promotion_log' | 'exam_halls' | 'cover_editor' | 'exam_cards' | 'exam_control_log' | 'administrative_correspondence' | 'primary_school_log' | 'school_archive' | 'absence_manager' | 'parent_invitations' | 'exam_results_exporter' | 'teacher_platform' | 'leave_requests' | 'leave_request_form';
 
 interface NavItem {
     view: View;
@@ -92,6 +93,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
     const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
     const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+    const [leaveRequests, setLeaveRequests] = useState<LeaveRequest[]>([]);
     
     const isPrincipal = currentUser.role === 'principal';
     const isTeacher = currentUser.role === 'teacher';
@@ -122,12 +124,15 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
         let settingsPath: string | null = null;
         const principalId = isTeacher ? (currentUser as Teacher).principalId : currentUser.id;
 
+        let settingsRef: any; 
+        let settingsCallback: any;
+        let leaveRequestsRef: any;
+        let leaveRequestsCallback: any;
+
         if (isPrincipal || (isTeacher && principalId)) {
             settingsPath = `settings/${principalId}`;
         }
 
-        let settingsRef: any; 
-        let settingsCallback: any;
 
         if (settingsPath) {
             settingsRef = db.ref(settingsPath);
@@ -144,6 +149,16 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 }
             };
             settingsRef.on('value', settingsCallback);
+
+            if (principalId) {
+                leaveRequestsRef = db.ref(`leave_requests/${principalId}`);
+                leaveRequestsCallback = (snapshot: any) => {
+                    const data = snapshot.val();
+                    const requests: LeaveRequest[] = data ? Object.values(data) : [];
+                    setLeaveRequests(requests);
+                };
+                leaveRequestsRef.on('value', leaveRequestsCallback);
+            }
         } else {
             setSettings(DEFAULT_SCHOOL_SETTINGS);
         }
@@ -158,6 +173,9 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
         return () => {
             if (settingsRef && settingsCallback) {
                 settingsRef.off('value', settingsCallback);
+            }
+            if (leaveRequestsRef && leaveRequestsCallback) {
+                leaveRequestsRef.off('value', leaveRequestsCallback);
             }
             classesRef.off('value', classesCallback);
         };
@@ -358,6 +376,8 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                     );
                 case 'teacher_platform':
                     return <TeacherPlatform />;
+                case 'leave_request_form':
+                    return <UnderMaintenance featureName="طلب إجازة" />;
                 default:
                      return <div>Teacher view not found</div>
             }
@@ -404,6 +424,8 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                     return <AbsenceManager principal={currentUser} settings={effectiveSettings} classes={principalClasses} />;
                 case 'receive_teacher_logs':
                     return <ReceiveTeacherLog principal={currentUser} classes={principalClasses} settings={effectiveSettings} users={users} />;
+                case 'leave_requests':
+                    return <LeaveRequestManager principal={currentUser} settings={effectiveSettings} requests={leaveRequests} />;
                 case 'electronic_logbook':
                     return <UnderMaintenance featureName="الدفتر الالكتروني" />;
                 case 'promotion_log':
@@ -439,6 +461,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
         { view: 'exam_control_log', icon: BookText, label: 'سجل السيطرة الامتحانية' },
         // { view: 'promotion_log', icon: ClipboardList, label: 'سجل الترحيل' }, // Temporarily disabled
         { view: 'receive_teacher_logs', icon: ClipboardPaste, label: 'السجلات المستلمة' },
+        { view: 'leave_requests', icon: Mail, label: 'طلبات الإجازة' },
     ];
     
     const showAboutButton = (isPrincipal && (activeView === 'home' || activeView === 'class_manager')) || 
@@ -506,6 +529,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                              <div className="space-y-1">
                                 <NavButton item={{view: 'home', icon: Home, label: 'الرئيسية'}} isCollapsed={isSidebarCollapsed} onClick={() => handleNavClick('home')} isActive={activeView === 'home' && !selectedClassId}/>
                                 <NavButton item={{view: 'teacher_platform', icon: Sparkles, label: 'تربوي تك الأستاذ'}} isCollapsed={isSidebarCollapsed} onClick={() => handleNavClick('teacher_platform')} isActive={activeView === 'teacher_platform'}/>
+                                <NavButton item={{view: 'leave_request_form', icon: Mail, label: 'طلب إجازة'}} isCollapsed={isSidebarCollapsed} onClick={() => handleNavClick('leave_request_form')} isActive={activeView === 'leave_request_form'}/>
                                 <div className="pt-2 mt-2 border-t border-gray-700 space-y-1">
                                     <h3 className={`px-4 text-xs font-semibold uppercase text-gray-400 ${isSidebarCollapsed ? 'hidden' : 'block'}`}>صفوفي</h3>
                                     {teacherNavItems.map(item => <NavButton key={item.label} item={item} isCollapsed={isSidebarCollapsed} onClick={() => item.classId && handleNavClick(item.view, item.classId)} isActive={selectedClassId === item.classId} />)}
