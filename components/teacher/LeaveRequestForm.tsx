@@ -1,13 +1,11 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import * as ReactDOM from 'react-dom/client';
-// FIX: Added missing type import
-import type { Teacher, SchoolSettings, ClassData, LeaveRequest } from '../../types';
-import { db } from '../../lib/firebase';
+import type { Teacher, SchoolSettings, ClassData, LeaveRequest } from '../../types.ts';
+import { db } from '../../lib/firebase.ts';
 import { v4 as uuidv4 } from 'uuid';
 import { Send, FileText, Loader2, Clock, CheckCircle, XCircle, PlayCircle, X } from 'lucide-react';
-import LeaveRequestPDF from './LeaveRequestPDF';
-import LeaveApprovalPDF from '../principal/LeaveApprovalPDF';
+import LeaveRequestPDF from './LeaveRequestPDF.tsx';
+import LeaveApprovalPDF from '../principal/LeaveApprovalPDF.tsx';
 
 declare const jspdf: any;
 declare const html2canvas: any;
@@ -30,6 +28,18 @@ export default function LeaveRequestForm({ teacher, settings, classes }: LeaveRe
 
     const teacherTerm = settings.schoolLevel === 'ابتدائية' ? 'المعلم/ة' : 'المدرس/ة';
 
+    const getSpecialization = () => {
+        const specializations = new Set<string>();
+        (teacher.assignments || []).forEach(assignment => {
+            const classInfo = classes.find(c => c.id === assignment.classId);
+            const subject = classInfo?.subjects.find(s => s.id === assignment.subjectId);
+            if (subject) {
+                specializations.add(subject.name);
+            }
+        });
+        return Array.from(specializations).join('، ') || 'غير محدد';
+    };
+
     useEffect(() => {
         const defaultRequestBody = `بسم الله الرحمن الرحيم
 السيد مدير/ة مدرسة ${settings.schoolName} المحترم
@@ -43,9 +53,13 @@ export default function LeaveRequestForm({ teacher, settings, classes }: LeaveRe
 البديل الاول: ............................
 البديل الثاني: ............................`;
         setRequestBody(defaultRequestBody);
-    }, [teacher.name, settings.schoolName, settings.schoolLevel]);
+    }, [teacher.name, settings.schoolName, teacherTerm, getSpecialization]);
 
     useEffect(() => {
+        if (!teacher.principalId) {
+            setIsLoading(false);
+            return;
+        }
         setIsLoading(true);
         const requestsRef = db.ref(`leave_requests/${teacher.principalId}`);
         const callback = (snapshot: any) => {
@@ -61,18 +75,6 @@ export default function LeaveRequestForm({ teacher, settings, classes }: LeaveRe
         return () => requestsRef.off('value', callback);
     }, [teacher.id, teacher.principalId]);
 
-    const getSpecialization = () => {
-        const specializations = new Set<string>();
-        (teacher.assignments || []).forEach(assignment => {
-            const classInfo = classes.find(c => c.id === assignment.classId);
-            const subject = classInfo?.subjects.find(s => s.id === assignment.subjectId);
-            if (subject) {
-                specializations.add(subject.name);
-            }
-        });
-        return Array.from(specializations).join('، ') || 'غير محدد';
-    };
-
     const leaveBalance = useMemo(() => {
         const approvedDays = history
             .filter(req => req.status === 'approved' && req.daysDeducted)
@@ -83,6 +85,10 @@ export default function LeaveRequestForm({ teacher, settings, classes }: LeaveRe
     const handleSubmit = async () => {
         if (!requestBody.trim()) {
             alert('يرجى ملء نص طلب الإجازة.');
+            return;
+        }
+        if (!teacher.principalId) {
+            alert('خطأ: لم يتم العثور على معرّف المدير.');
             return;
         }
         setIsSubmitting(true);
@@ -125,6 +131,8 @@ export default function LeaveRequestForm({ teacher, settings, classes }: LeaveRe
                 await renderComponent(<LeaveRequestPDF requestBody={request.requestBody} />);
             } else if (type === 'approval' && request.approvalBody) {
                 await renderComponent(<LeaveApprovalPDF approvalBody={request.approvalBody} />);
+            } else {
+                return; // Nothing to export
             }
 
             const element = tempContainer.children[0] as HTMLElement;
@@ -152,6 +160,7 @@ export default function LeaveRequestForm({ teacher, settings, classes }: LeaveRe
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {isExporting && <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"><Loader2 className="text-white h-16 w-16 animate-spin"/></div>}
             {isVideoModalOpen && (
                 <div 
                     className="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-[100] p-4"
@@ -196,7 +205,7 @@ export default function LeaveRequestForm({ teacher, settings, classes }: LeaveRe
                         value={requestBody}
                         onChange={(e) => setRequestBody(e.target.value)}
                         rows={15}
-                        className="w-full p-4 border border-gray-300 rounded-lg focus:ring-cyan-500 focus:border-cyan-500 leading-relaxed"
+                        className="w-full p-4 border border-gray-300 rounded-lg focus:ring-cyan-500 focus:border-cyan-500 leading-relaxed font-sans"
                         placeholder="اكتب طلبك هنا..."
                     />
                     <div className="flex justify-end gap-4 mt-4">
@@ -206,10 +215,20 @@ export default function LeaveRequestForm({ teacher, settings, classes }: LeaveRe
                         </button>
                     </div>
                 </div>
-
+            </div>
+            <div className="md:col-span-1 space-y-6">
+                 <div className="bg-white p-6 rounded-xl shadow-lg text-center sticky top-8">
+                     <h3 className="text-lg font-semibold text-gray-600">الرصيد الكلي</h3>
+                     <p className="text-5xl font-bold text-blue-600 mt-1">{TOTAL_LEAVE_DAYS}</p>
+                     <p className="text-sm">أيام</p>
+                     <div className="my-4 h-px bg-gray-200"></div>
+                     <h3 className="text-lg font-semibold text-gray-600">الرصيد المتبقي</h3>
+                     <p className={`text-6xl font-bold mt-2 ${leaveBalance <= 2 ? 'text-red-500 animate-pulse' : 'text-green-500'}`}>{leaveBalance}</p>
+                     <p className="text-sm">أيام</p>
+                </div>
                 <div className="bg-white p-6 rounded-xl shadow-lg">
-                    <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">سجل الطلبات</h2>
-                     {isLoading ? <Loader2 className="animate-spin" /> : (
+                    <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">سجل الطلبات</h2>
+                     {isLoading ? <Loader2 className="animate-spin mx-auto" /> : (
                         <div className="space-y-4 max-h-96 overflow-y-auto">
                             {history.length === 0 ? <p className="text-gray-500">لا توجد طلبات سابقة.</p> : history.map(req => (
                                 <div key={req.id} className="p-4 border rounded-lg bg-gray-50">
@@ -225,17 +244,6 @@ export default function LeaveRequestForm({ teacher, settings, classes }: LeaveRe
                             ))}
                         </div>
                      )}
-                </div>
-            </div>
-            <div className="md:col-span-1">
-                <div className="bg-white p-6 rounded-xl shadow-lg text-center sticky top-8">
-                     <h3 className="text-lg font-semibold text-gray-600">الرصيد الكلي</h3>
-                     <p className="text-5xl font-bold text-blue-600 mt-1">{TOTAL_LEAVE_DAYS}</p>
-                     <p className="text-sm">أيام</p>
-                     <div className="my-4 h-px bg-gray-200"></div>
-                     <h3 className="text-lg font-semibold text-gray-600">الرصيد المتبقي</h3>
-                     <p className={`text-6xl font-bold mt-2 ${leaveBalance <= 2 ? 'text-red-500 animate-pulse' : 'text-green-500'}`}>{leaveBalance}</p>
-                     <p className="text-sm">أيام</p>
                 </div>
             </div>
         </div>

@@ -32,6 +32,7 @@ import ExamControlLog from './components/principal/ExamControlLog.tsx';
 // import ParentInvitationExporter from './components/principal/ParentInvitationExporter.tsx'; // Temporarily disabled
 import ExportManager from './components/ExportManager.tsx';
 import LeaveRequestManager from './components/principal/LeaveRequestManager.tsx';
+import LeaveRequestForm from './components/teacher/LeaveRequestForm.tsx';
 
 
 type View = 'home' | 'settings' | 'class_manager' | 'grade_sheet' | 'export_results' | 'statistics' | 'teacher_log_exporter' | 'admin_log_exporter' | 'principal_dashboard' | 'receive_teacher_logs' | 'electronic_logbook' | 'grade_board' | 'oral_exam_lists' | 'promotion_log' | 'exam_halls' | 'cover_editor' | 'exam_cards' | 'exam_control_log' | 'administrative_correspondence' | 'primary_school_log' | 'school_archive' | 'absence_manager' | 'parent_invitations' | 'exam_results_exporter' | 'teacher_platform' | 'leave_requests' | 'leave_request_form';
@@ -377,7 +378,7 @@ export default function MainApp({ currentUser, onLogout, users, addUser, updateU
                 case 'teacher_platform':
                     return <TeacherPlatform />;
                 case 'leave_request_form':
-                    return <UnderMaintenance featureName="طلب إجازة" />;
+                    return <LeaveRequestForm teacher={currentUser as Teacher} settings={effectiveSettings} classes={classes} />;
                 default:
                      return <div>Teacher view not found</div>
             }
