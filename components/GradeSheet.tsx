@@ -423,7 +423,12 @@ export default function GradeSheet({ classData, settings }: GradeSheetProps): Re
                                                         if (col.type === 'calculated-result') {
                                                             return <td key={cellKey} className="border border-gray-300 text-center font-semibold bg-gray-100">{calculated[col.key as keyof CalculatedGrade] ?? '-'}</td>;
                                                         }
-                                                        if (col.type === 'calculated-final') return <td key={cellKey} className="border border-gray-300 text-center">{renderFinalGradeCell(calculated.finalGrade1st, calculated.finalGradeWithDecision, calculated.decisionApplied)}</td>;
+                                                        if (col.type === 'calculated-final') {
+                                                            if (stageType === 'standard' && (grade.finalExam1st === null || grade.finalExam1st === undefined)) {
+                                                                return <td key={cellKey} className="border border-gray-300 text-center bg-gray-50">-</td>;
+                                                            }
+                                                            return <td key={cellKey} className="border border-gray-300 text-center">{renderFinalGradeCell(calculated.finalGrade1st, calculated.finalGradeWithDecision, calculated.decisionApplied)}</td>;
+                                                        }
                                                         if (col.type === 'calculated-pursuit') return <td key={cellKey} className="border border-gray-300 text-center font-semibold bg-gray-100">{calculated.annualPursuit ?? '-'}</td>;
                                                         return <td key={cellKey} className="border border-gray-300"></td>;
                                                     })}

@@ -124,7 +124,11 @@ export default function AdminReportCard({ student, classData, settings, studentR
                                                     <GradeCell value={grades.midYear} />
                                                     <GradeCell value={grades.secondTerm} />
                                                     <GradeCell value={calculated.annualPursuit} className="bg-orange-100" />
-                                                    <GradeCell value={grades.finalExam1st} className="bg-orange-100" />
+                                                    {calculated.isExempt ? (
+                                                        <td className="border-2 border-black text-center font-bold text-lg p-1 bg-orange-100 text-blue-800">معفو</td>
+                                                    ) : (
+                                                        <GradeCell value={grades.finalExam1st} className="bg-orange-100" />
+                                                    )}
                                                     <GradeCell value={calculated.finalGradeWithDecision} className="bg-orange-100" />
                                                     <GradeCell value={grades.finalExam2nd} className="bg-pink-100" />
                                                     <GradeCell value={calculated.finalGrade2nd} className="bg-pink-100" />
