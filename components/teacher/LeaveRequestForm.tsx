@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import * as ReactDOM from 'react-dom/client';
 import type { Teacher, SchoolSettings, ClassData, LeaveRequest } from '../../types.ts';
 import { db } from '../../lib/firebase.ts';
@@ -19,29 +19,23 @@ interface LeaveRequestFormProps {
 const TOTAL_LEAVE_DAYS = 7;
 
 export default function LeaveRequestForm({ teacher, settings, classes }: LeaveRequestFormProps) {
-    const [requestBody, setRequestBody] = useState('');
-    const [history, setHistory] = useState<LeaveRequest[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isExporting, setIsExporting] = useState(false);
-    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+    
+    const [requestBody, setRequestBody] = useState(() => {
+        const teacherTerm = settings.schoolLevel === 'ابتدائية' ? 'المعلم/ة' : 'المدرس/ة';
+        
+        const getSpecialization = () => {
+            const specializations = new Set<string>();
+            (teacher.assignments || []).forEach(assignment => {
+                const classInfo = classes.find(c => c.id === assignment.classId);
+                const subject = classInfo?.subjects.find(s => s.id === assignment.subjectId);
+                if (subject) {
+                    specializations.add(subject.name);
+                }
+            });
+            return Array.from(specializations).join('، ') || 'غير محدد';
+        };
 
-    const teacherTerm = settings.schoolLevel === 'ابتدائية' ? 'المعلم/ة' : 'المدرس/ة';
-
-    const getSpecialization = () => {
-        const specializations = new Set<string>();
-        (teacher.assignments || []).forEach(assignment => {
-            const classInfo = classes.find(c => c.id === assignment.classId);
-            const subject = classInfo?.subjects.find(s => s.id === assignment.subjectId);
-            if (subject) {
-                specializations.add(subject.name);
-            }
-        });
-        return Array.from(specializations).join('، ') || 'غير محدد';
-    };
-
-    useEffect(() => {
-        const defaultRequestBody = `بسم الله الرحمن الرحيم
+        return `بسم الله الرحمن الرحيم
 السيد مدير/ة مدرسة ${settings.schoolName} المحترم
 السلام عليكم ورحمة الله وبركاته
 اني ${teacherTerm} (${teacher.name}) اتقدم بطلبي هذا بالموافقة على منحي اجازة اعتيادية امدها (.....) اعتبارا من يوم (.....) الموافق (  /  /   202 ) وذلك بسبب (.....) ولكم الشكر والتقدير.
@@ -52,8 +46,14 @@ export default function LeaveRequestForm({ teacher, settings, classes }: LeaveRe
 
 البديل الاول: ............................
 البديل الثاني: ............................`;
-        setRequestBody(defaultRequestBody);
-    }, [teacher.name, settings.schoolName, teacherTerm, getSpecialization]);
+    });
+    
+    const [history, setHistory] = useState<LeaveRequest[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
+    const [isVideoModalOpen, setIsVideoModalOpen] = useState(false);
+
 
     useEffect(() => {
         if (!teacher.principalId) {
